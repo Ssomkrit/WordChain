@@ -332,7 +332,7 @@ try to beat the current high score of **{config.game_state[game_mode].high_score
             # Wrong starting letter
             # -------------------------
             if (config.game_state[game_mode].current_word and word[:game_mode.value] !=
-                    config.game_state[game_mode].current_word[-game_mode.value:]):
+                            config.game_state[game_mode].current_word.rstrip('й')[-game_mode.value:]):
 
                 response: str = f'''{message.author.mention} messed up the chain! \
 *The word you entered did not begin with the last letter of the previous word* (**{config.game_state[game_mode].current_word[-game_mode.value:]}**).
