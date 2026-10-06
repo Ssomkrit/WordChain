@@ -103,6 +103,7 @@ SH_FIRST_TOKEN_SCORES: dict[GameMode, defaultdict[str, float]] = load_token_scor
 HU_FIRST_TOKEN_SCORES: dict[GameMode, defaultdict[str, float]] = load_token_scores_from_json('hu')
 RO_FIRST_TOKEN_SCORES: dict[GameMode, defaultdict[str, float]] = load_token_scores_from_json('ro')
 TR_FIRST_TOKEN_SCORES: dict[GameMode, defaultdict[str, float]] = load_token_scores_from_json('tr')
+RU_FIRST_TOKEN_SCORES: dict[GameMode, defaultdict[str, float]] = load_token_scores_from_json('ru')
 
 
 class Language(Enum):
