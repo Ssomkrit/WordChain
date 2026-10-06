@@ -7,6 +7,8 @@ import logging
 import os
 import re
 import pymorphy3
+
+MORPH = pymorphy3.MorphAnalyzer()
 from asyncio import CancelledError
 from collections import defaultdict, deque
 from concurrent.futures import Future
