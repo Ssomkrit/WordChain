@@ -6,6 +6,7 @@ import inspect
 import logging
 import os
 import re
+import pymorphy3
 from asyncio import CancelledError
 from collections import defaultdict, deque
 from concurrent.futures import Future
