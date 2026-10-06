@@ -35,6 +35,7 @@ SS_REGEX: str = build_regex('[a-zčćđšž]', '[-]|[a-zčćđšž]','[a-zčćđ
 HU_REGEX: str = build_regex('[a-záéíóöőúüű]', '[-]|[a-záéíóöőúüű]', '[a-záéíóöőúüű]')
 RO_REGEX: str = build_regex('[a-zăâîșț]', '[-]|[a-zăâîșț]', '[a-zăâîșț]')
 TR_REGEX: str = build_regex('[a-zâçğıîöşûü]', '[-]|[a-zâçğıîöşûü]', '[a-zâçğıîöşûü]')
+RU_REGEX: str = build_regex('[а-яё]', '[-]|[а-яё]', '[а-яё]')
 
 DEFAULT_FIRST_TOKEN_SCORES: dict[GameMode, defaultdict[str, float]] = {
     GameMode.NORMAL: defaultdict(lambda: 1.0),
