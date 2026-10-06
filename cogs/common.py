@@ -430,6 +430,19 @@ class CommonCog(Cog, name=COG_NAME_COMMON):
         bool
             `True` if the word matches the pattern, otherwise `False`.
         """
+        if language_info.code == 'ru':
+            parsed = MORPH.parse(word.lower())
+            if not parsed:
+                return False
+
+            parse = parsed[0]
+
+            if any(tag in parse.tag for tag in ("Name", "Surn", "Patr", "Geox", "Abbr", "Orgn")):
+                return False
+
+            if parse.tag.POS != "INFN" and "nomn" not in parse.tag:
+                return False
+      
         return True if re.search(language_info.allowed_word_regex, word.lower()) else False
 
     # ---------------------------------------------------------------------------------------------------------------
