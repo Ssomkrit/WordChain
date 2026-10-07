@@ -321,7 +321,7 @@ class GameCog(Cog, name=COG_NAME_GAME):
                 response: str = f'''{message.author.mention} ошибся в цепочке! \
 *Нельзя писать два слова подряд!*
 {f'Цепочка прервана на {config.game_state[game_mode].current_count} словах. 😭\n' if config.game_state[game_mode].current_count > 0 else ''}\
-Начните со слова на **{config.game_state[game_mode].current_word[-game_mode.value:]}** and \
+Начните со слова на **{config.game_state[game_mode].current_word[-game_mode.value:]}** и \
 попробуйте побить рекорд — **{config.game_state[game_mode].high_score}**!'''
 
                 await self.handle_mistake(message, response, connection, game_mode)
@@ -337,7 +337,7 @@ class GameCog(Cog, name=COG_NAME_GAME):
                 response: str = f'''{message.author.mention} ошибся в цепочке! \
 *Слово должно начинаться с последней буквы предыдущего слова* (**{config.game_state[game_mode].current_word.rstrip('йыьъ')[-game_mode.value:]}**).
 {f'Цепочка прервана на {config.game_state[game_mode].current_count} словах. 😭\n' if config.game_state[game_mode].current_count > 0 else ''}\
-Начните со слова на **{config.game_state[game_mode].current_word.rstrip('йыьъ')[-game_mode.value:]}** and try to beat the \
+Начните со слова на **{config.game_state[game_mode].current_word.rstrip('йыьъ')[-game_mode.value:]}** и попробуйте побить \
 рекорд — **{config.game_state[game_mode].high_score}**!'''
 
                 await self.handle_mistake(message, response, connection, game_mode)
@@ -375,7 +375,7 @@ class GameCog(Cog, name=COG_NAME_GAME):
                         response: str = f'''{message.author.mention} ошибся в цепочке! \
 *Введённого слова не существует.^*
 {f'Цепочка прервана на {config.game_state[game_mode].current_count} словах. 😭\n' if config.game_state[game_mode].current_count > 0 else ''}\
-Начните со слова на **{config.game_state[game_mode].current_word[-game_mode.value:]}** and try to beat the \
+Начните со слова на **{config.game_state[game_mode].current_word[-game_mode.value:]}** и попробуйте побить \
 рекорд — **{config.game_state[game_mode].high_score}**!
 
 -# ^ Если слово недействительно, проверка выполняется с учётом языков, включённых на этом сервере.\n-# Чтобы посмотреть включённые языки, используйте `/show_languages`.'''
@@ -383,7 +383,7 @@ class GameCog(Cog, name=COG_NAME_GAME):
                     else:
                         response: str = f'''{message.author.mention} ошибся в цепочке! \
 *Введённого слова не существует.*
-Restart and попробуйте побить рекорд — **{config.game_state[game_mode].high_score}**!'''
+Начните заново и попробуйте побить рекорд — **{config.game_state[game_mode].high_score}**!'''
 
                     await self.handle_mistake(message, response, connection, game_mode)
                     await connection.commit()
