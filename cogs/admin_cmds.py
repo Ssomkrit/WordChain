@@ -196,7 +196,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                         emb.description += f'### `{logger_name1}`\n'
 
                         queried_logger.setLevel(level)
-                        emb.description += f'✅ Level set to `{logging.getLevelName(level)}`.\n'
+                        emb.description += f'✅ Уровень установлен на `{logging.getLevelName(level)}`.\n'
 
                         if queried_logger.disabled:
                             emb.description += f'⚠️ Журнал отключён!\n\n'
@@ -207,7 +207,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
                     if queried_logger:
                         queried_logger.setLevel(level)
-                        emb.description += f'✅ Level set to `{logging.getLevelName(level)}`.'
+                        emb.description += f'✅ Уровень установлен на `{logging.getLevelName(level)}`.'
 
                         if queried_logger.disabled:
                             emb.description += f'\n\n⚠️ Журнал отключён!'
