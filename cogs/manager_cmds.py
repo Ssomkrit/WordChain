@@ -11,16 +11,16 @@ from discord import Colour, Embed, Interaction, Permissions, Role, TextChannel, 
 from discord.app_commands import Choice, Group
 from discord.ext.commands import Cog
 from sqlalchemy import CursorResult, delete, insert, select
-from sqlalchemy.exc import SQLAlchemyОшибка
+from sqlalchemy.exc import SQLAlchemyError
 
-from consts import COG_NAME_COMMON, COG_NAME_MANAGER_CMDS, LOGGER_NAME_MANAGER_COG, ИграMode, \
+from consts import COG_NAME_COMMON, COG_NAME_MANAGER_CMDS, LOGGER_NAME_MANAGER_COG, GameMode, \
     RELIABLE_ROLE_KARMA_THRESHOLD, RELIABLE_ROLE_ACCURACY_THRESHOLD, DISCORD_UNKNOWN_MEMBER, DISCORD_UNKNOWN_ROLE, \
     DISCORD_UNKNOWN_USER
 from language import Language
-from model import BlacklistModel, ИграModeState, MemberModel, WhitelistModel, ServerConfig, ServerConfigModel
+from model import BlacklistModel, GameModeState, MemberModel, WhitelistModel, ServerConfig, ServerConfigModel
 
 if TYPE_CHECKING:
-    from cogs.common import ОбщиеCog
+    from cogs.common import CommonCog
     from main import WordChainBot
 
 fileConfig(fname='config.ini')
@@ -38,18 +38,18 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
         self.bot.tree.add_command(ManagerCommandsCog.LanguageCmdGroup(self))
 
     @property
-    def common(self) -> ОбщиеCog:
+    def common(self) -> CommonCog:
         for _ in range(5):
-            cog: ОбщиеCog | None = self.bot.get_cog(COG_NAME_COMMON) # noqa
+            cog: CommonCog | None = self.bot.get_cog(COG_NAME_COMMON) # noqa
             if cog is not None:
                 return cog # noqa
             time.sleep(.2)
-        raise ValueОшибка(f'Cog {COG_NAME_COMMON} not found')
+        raise ValueError(f'Cog {COG_NAME_COMMON} not found')
 
     # ----------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def is_generally_illegal_word(common: ОбщиеCog, word: str, server_id: int):
+    def is_generally_illegal_word(common: CommonCog, word: str, server_id: int):
         valid_languages = common.server_configs[server_id].languages
         return not any(common.word_matches_pattern(word.lower(), language.value) for language in valid_languages)
 
@@ -84,8 +84,8 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
 
         await self.common.ensure_config(guild)
         config = self.common.server_configs[guild.id]
-        config.game_state[ИграMode.NORMAL] = ИграModeState()
-        config.game_state[ИграMode.HARD] = ИграModeState()
+        config.game_state[GameMode.NORMAL] = GameModeState()
+        config.game_state[GameMode.HARD] = GameModeState()
         config.failed_member_id = None
 
         async with self.bot.db_connection() as connection:
@@ -100,7 +100,7 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
                 await connection.commit()
                 emb: Embed = Embed(title='Готово', colour=Colour.green(),
                                    description=f'''Статистика сброшена.''')
-            except SQLAlchemyОшибка as e:
+            except SQLAlchemyError as e:
                 logger.error(e)
                 emb: Embed = Embed(title='Ошибка', colour=Colour.red(),
                                    description=f'''Произошла ошибка. Изменения могли не сохраниться.''')
@@ -130,7 +130,7 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
         try:
             config = self.common.server_configs[guild.id]
             items.extend(self.common.permission_checks_for_config(config, bot_member))
-        except KeyОшибка:
+        except KeyError:
             items.append('Server config not present!')
 
         await interaction.followup.send('\n'.join(items))
@@ -236,7 +236,7 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
         @app_commands.command(name='channel', description='Настраивает игровой канал')
         @app_commands.describe(channel='The channel where the game will be played')
         @app_commands.describe(game_mode='Configure either for normal mode or for hard mode')
-        async def set_channel(self, interaction: Interaction, channel: TextChannel, game_mode: ИграMode):
+        async def set_channel(self, interaction: Interaction, channel: TextChannel, game_mode: GameMode):
             """Command to set the play channel"""
             await interaction.response.defer()
 
@@ -244,7 +244,7 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
             if guild is None:
                 return
 
-            other_game_mode = ИграMode.HARD if game_mode == ИграMode.NORMAL else ИграMode.NORMAL
+            other_game_mode = GameMode.HARD if game_mode == GameMode.NORMAL else GameMode.NORMAL
             await self.cog.common.ensure_config(guild)
             config = self.cog.common.server_configs[guild.id]
 
@@ -653,7 +653,7 @@ to the other game mode!''')
 
             try:
                 language = Language.from_language_code(language_code.lower())
-            except ValueОшибка:
+            except ValueError:
                 embed.description = f'❌ Invalid language code. Please use the codes as stated in `/language show-all`.'
                 embed.colour = Colour.red()
 
@@ -714,7 +714,7 @@ to the other game mode!''')
 
             try:
                 language = Language.from_language_code(language_code.lower())
-            except ValueОшибка:
+            except ValueError:
                 embed.description = f'❌ Invalid language code.\nPlease use the codes as stated in `/language show-all`.'
                 embed.colour = Colour.red()
 
