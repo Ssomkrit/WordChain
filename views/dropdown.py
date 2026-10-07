@@ -102,6 +102,6 @@ class Dropdown(discord.ui.Select):
         if self._original_interaction.user.id == interaction.user.id:
             return True
         else:
-            await interaction.response.send_message(':warning: I respond only to the user who executed '
-                                                    'the original command.', ephemeral=True)
+            await interaction.response.send_message(':warning: Я отвечаю только пользователю, который выполнил 
+                                                     'исходную команду.', ephemeral=True)
             return False
