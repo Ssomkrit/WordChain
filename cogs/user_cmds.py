@@ -858,11 +858,11 @@ https://github.com/WrichikBasu/word_chain_bot_indently/blob/main/PRIVACY_POLICY.
                 emb = discord.Embed(
                     color=discord.Color.blue(),
                     description=f'''**Очки:** {db_member.score} (#{pos_by_score})
-**🌟Karma:** {db_member.karma:.2f} (#{pos_by_karma})
+**🌟Карма:** {db_member.karma:.2f} (#{pos_by_karma})
 **✅Правильных:** {db_member.correct}
 **❌Ошибок:** {db_member.wrong}
 **Точность:** {(db_member.correct / (db_member.correct + db_member.wrong)):.2%}'''
-                ).set_author(name=f"{scope_member} | stats", icon_url=get_member_avatar())
+                ).set_author(name=f"{scope_member} | статистика", icon_url=get_member_avatar())
 
                 await interaction.followup.send(embed=emb)
 
