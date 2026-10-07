@@ -314,133 +314,100 @@ Therefore, a word that is valid in this server may not be valid in another serve
 
         @staticmethod
         def get_how_to_play_embed() -> Embed:
+            return Embed(title="Как играть", description=f'''## Обычный режим
+Правила простые.
 
-            return Embed(title="Как играть", description=f'''\
-## Обычный режим
-The game is pretty simple.
+- Введите слово на последнюю букву предыдущего правильного слова.
+- Если слово правильное, бот поставит галочку — :white_check_mark:.
+- Принимаются только буквы и дефис. Остальные сообщения игнорируются.
+- Проверить слово можно командой /check_word. Она проверяет допустимость слова, но не букву для продолжения цепочки.
+- Использованное слово нельзя повторять до прерывания цепочки.
+- Неверное или несуществующее слово прерывает цепочку.
+- Два слова подряд от одного игрока также прерывают цепочку.
+- После прерывания все использованные слова сбрасываются.
+- После ошибки цепочка продолжается с последней буквы предыдущего правильного слова.
 
-- Enter a word that starts with the last letter of the previous correct word.  
-- If your word is correct, the bot will react with a tick mark — :white_check_mark:.  
-- No characters other than letters and hyphen (`-`) are accepted. Messages with anything else will be ignored. \
-If only English is selected (default), only letters of the English alphabet are accepted. If other languages are \
-selected, typical accentuated letters for that language are accepted as well.
-- You can check if a word is correct using the `/check_word` command - this checks only if the word is generally \
-accepted, it does **not** check if it has the matching starting letter to continue the current chain.
-- Words that have been used once cannot be used again until the chain is broken. The chain, however, will **not**
- be broken if you enter a word that has been used previously. The bot will simply ask you to enter another word.
-- Entering a wrong/non-existent word will break the chain.
-- Entering words twice in a row by the same user will also break the chain.
-- Once the chain is broken, all used words will be reset.
-- The chain continues even if someone messes up, in the sense that one still has to enter a word beginning with the \
-last letter of the previous correct word.
-
-That's all. Go and beat the high score in your server and top the global leaderboard!! :fire:
+Попробуйте побить рекорд своего сервера и попасть в глобальный рейтинг! :fire:
 
 ## Сложный режим
-Сложный режим is the same as normal mode, except that the first **two letters** of a word must be the 
-same as the last two letters of the previous word.
+Правила такие же, но первые две буквы слова должны совпадать с последними двумя буквами предыдущего слова.
 ''', colour=Colour.dark_orange())
-
         # ------------------------------------------------------------------------------------------------------------
 
         @staticmethod
         def get_game_rules_embed() -> Embed:
+            return Embed(title="Общие правила игры", description=f'''Автоматизация и использование ботов для игры полностью запрещены. За нарушение — пожизненная блокировка у бота.
 
-            return Embed(title="Общие правила игры", description=f'''\
-You are **not** allowed to use any automation/botting of *any* kind under any circumstances. If you are reported, \
-you will be banned from the bot for a lifetime.
-
-***Please note:** In addition to these rules, the server where you are playing may \
-have other rules that are not covered here. Please check with the server moderators or administrators.*
+Важно: На сервере могут действовать дополнительные правила. Уточните их у модераторов или администраторов.
 ''', colour=Colour.red())
-
         # ------------------------------------------------------------------------------------------------------------
 
         @staticmethod
         def get_multi_language_embed() -> Embed:
+            return Embed(title="Поддержка нескольких языков", description=f'''Бот позволяет включить на сервере до двух языков.
 
-            return Embed(title="Поддержка нескольких языков", description=f'''\
-The bot now allows you to enable up to two languages in a server.
-
-The following languages are supported:
+Поддерживаемые языки:
 {', '.join(f'{language.display_name}' for language in Language)}
 
-In order to enable/disable languages, server managers can use the commands under the `/language` category.
+Для включения или отключения языка используйте команды категории /language.
 ''', colour=Colour.dark_orange())
-
         # ------------------------------------------------------------------------------------------------------------
 
         @staticmethod
         def setup_in_server() -> Embed:
+            return Embed(description=f'''## Основная настройка
+1. Добавьте бота на сервер.
+2. Используйте /set channel, чтобы выбрать игровой канал. Нужны права Управление сервером.
 
-            return Embed(description=f'''\
-## Basic setup
-1. Add the bot to your server. You can click on the bot's profile picture and click "Add App".
-2. Run `/set channel` to set the channel where the game will be played. (You need to have at least `Manage Server` \
-permission to run this command.)
+После этого можно начинать игру — отправьте любое слово.
 
-This will be enough to let users play the game in your server. Send any word to start the chain.
+Если что-то не работает, используйте /health_check для проверки прав.
 
-If it doesn't work, managers can use the `/health_check` command to check if the permissions are set correctly.
+## Рекомендуемая настройка
+- Отключите право Добавление реакций для @everyone в игровом канале.
+> Зачем? Игроки могут поставить галочку на неправильном слове, если бот задерживает реакцию.
 
-## Highly recommended setup
-- Disable the `Add reactions` permissions for `@everyone` in the game channel.
-> **Why do we recommend this?**
-> We have seen people put check mark reactions to words that are wrong when the bot lags in putting a reaction \
-(eg. when the discord API is slow due to any reason or when the bot is going through \
-a restart), and thereby mislead users on what the last correct word is.
+## Дополнительная настройка
+1. Настройте роли через /set failed_role и /set reliable_role.
+2. Можно создать канал с правилами и выдавать доступ к игре после подтверждения их прочтения.
 
-## Optional setup
-1. Set the failed role using `/set failed_role`, and the reliable role with `/set reliable_role`.
-2. To make sure that people have read the game rules, create a channel with the game rules, along with a \
-reaction role giving access to the game channel. This will make sure that people will be able to play \
-only after agreeing that they have read the rules.
-
-For multi-language setup, see the `Поддержка нескольких языков` section in the `/help` command.''', colour=Colour.yellow())
-
+Для нескольких языков смотрите раздел Поддержка нескольких языков в /help.
+''', colour=Colour.yellow())
         # ------------------------------------------------------------------------------------------------------------
 
         @staticmethod
         def get_karma_embed(config: ServerConfig | None) -> Embed:
-            description = f'''\
-The karma system is based upon the frequency of characters as the first letter.
+            description = f'''Система кармы учитывает частоту букв.
 
-**You *gain* karma if:**
-- your word starts with a letter that is less frequent than average (because it is harder to find)
-- your word ends with a letter that is more frequent than average (because it makes it easier for the next player)
-- you use a variety of words that end in different letters
+Вы получаете карму, если:
+- начинаете слово с редкой буквы;
+- заканчиваете слово частой буквой, облегчая следующий ход;
+- используете разные слова с разными последними буквами.
 
-**You *lose* karma if:**
-- your word ends with a letter  (eg. `y`) that is less frequent than average (because it makes it harder \
-for the next player)
-- you keep using words that end in the same letter.
+Вы теряете карму, если:
+- заканчиваете слово редкой буквой, усложняя следующий ход;
+- постоянно используете одну и ту же последнюю букву.
 
-**You do *not* lose karma if:**
-- your word starts with a letter that is more frequent than average (because you cannot choose the first letter)
+Вы не теряете карму, если:
+- начинаете слово с частой буквы — первую букву выбирает предыдущий игрок.
 
-**If you mess up:** You lose {MISTAKE_PENALTY} karma points.
+Если ошиблись: теряете ${MISTAKE_PENALTY} очков кармы.
 
-:point_right:  Karma will never be < 0.
-:point_right:  Check your karma in the `/stats user` command.
-:point_right:  To view the karma leaderboard, use `/leaderboard user metric:karma`.
+:point_right: Карма не может быть меньше 0.
+:point_right: Проверить карму: /stats user.
+:point_right: Рейтинг по карме: /leaderboard user metric:karma.
 '''
             if config and config.reliable_role_id:
-                description += f''':point_right:  To receive the <@&{config.reliable_role_id}> role, you must have \
-karma > {RELIABLE_ROLE_KARMA_THRESHOLD} and accuracy > {RELIABLE_ROLE_ACCURACY_THRESHOLD:.1%}.\
+                description += f''':point_right: Чтобы получить <@&${config.reliable_role_id}>, нужно иметь карму > ${RELIABLE_ROLE_KARMA_THRESHOLD} и точность > ${RELIABLE_ROLE_ACCURACY_THRESHOLD:.1%}.
 '''
-
             return Embed(title='Система кармы', description=description, colour=Colour.green())
-
         # ------------------------------------------------------------------------------------------------------------
 
         @staticmethod
         def get_support_server_embed() -> Embed:
-            return Embed(title='Сервер поддержки', description=f'''\
-For any questions, suggestions or bug reports, or if you just want to hang out with a cool community of word chain \
-players, feel free to join our support server:
+            return Embed(title='Сервер поддержки', description=f'''По вопросам, предложениям и сообщениям об ошибках присоединяйтесь к серверу поддержки:
 
 https://discord.gg/yhbzVGBNw3''', colour=Colour.pink())
-
         # ------------------------------------------------------------------------------------------------------------
 
         @staticmethod
@@ -517,56 +484,25 @@ https://discord.gg/yhbzVGBNw3''', colour=Colour.pink())
 
         @staticmethod
         def get_privacy_policy_embed() -> Embed:
-
-            return Embed(title='Политика конфиденциальности', description=f'''\
-The privacy policy is available \
-[here](https://github.com/WrichikBasu/word_chain_bot_indently/blob/main/PRIVACY_POLICY.md).''',
-                         color=Colour.yellow())
-
+            return Embed(title='Политика конфиденциальности', description=f'''Политика конфиденциальности доступна здесь:
+https://github.com/WrichikBasu/word_chain_bot_indently/blob/main/PRIVACY_POLICY.md''', color=Colour.yellow())
         # -------------------------------------------------------------------------------------------------------------
 
         @staticmethod
         def get_credits_embed() -> Embed:
-
-            return Embed(title='Credits', description='''\
-- **Source code**
-The bot is open-source, released under the BSD-3-Clause-License. The source code is \
-[available on GitHub](https://github.com/WrichikBasu/word_chain_bot_indently).
-- **Hosting information**
-The bot is currently hosted on Hetzner, provided by <@841541609052307458> and his friends.
-- **Credits**
-  - Base code taken from [Counting Bot Indently](https://github.com/guanciottaman/counting_bot_indently).
-  - Base code modified for the Word Chain Bot by <@1024746441798856717>.
-  - Система кармы and multi-server support completely designed by <@329857455423225856>.
-  - Поддержка нескольких языков by <@1024746441798856717>, with inputs from <@329857455423225856>.
-- **What/who is "Indently"?**
-This bot was created for the [Indently Discord server](https://discord.com/invite/indently-1040343818274340935), \
-and is owned by the Indently Bot Dev Team. Federico, the founder of Indently, has kindly allowed us to keep the \
-name of his company in our bot's name. (btw, if you are keen to learn python and interact with fellow programmers, \
-check out the Indently Discord linked above!)''', colour=Colour.teal())
-
+            return Embed(title='Авторы', description='''- Исходный код: бот имеет открытый исходный код и распространяется по лицензии BSD-3-Clause.
+- Хостинг: бот размещён на Hetzner.
+- Основа кода взята из Counting Bot Indently и адаптирована для Word Chain Bot.
+- Система кармы, поддержка нескольких серверов и языков были добавлены отдельно.
+''', colour=Colour.teal())
         # ------------------------------------------------------------------------------------------------------------
 
         @staticmethod
         def get_vote_embed() -> Embed:
+            return Embed(title='Проголосовать за бота!', description=f'''Word Chain Bot Indently — бот с открытым исходным кодом. Если вам нравится бот, будем благодарны за ваш голос!
 
-            return Embed(title='Проголосовать за бота!', description=f'''\
-**Word Chain Bot Indently** is an open-source bot. We developers do not earn anything from it, but it \
-is your excitement that fuels us to continue working on it. We will really appreciate it if you vote for our bot, \
-as it will allow more people discover it!
-
-[Vote on Top.gg!](https://top.gg/bot/1222301436054999181/vote)
-[Vote on discordbotlist.com!](https://discordbotlist.com/bots/word-chain-bot-indently/upvote)''',
-                         color=Colour.red())
-
-    # ===================================================================================================================
-
-    class LeaderboardCmdGroup(app_commands.Group):
-
-        def __init__(self, parent_cog: UserCommandsCog):
-            super().__init__(name='leaderboard', guild_only=True)
-            self.cog: UserCommandsCog = parent_cog
-
+[Проголосовать на Top.gg!](https://top.gg/bot/1222301436054999181/vote)
+[Проголосовать на discordbotlist.com!](https://discordbotlist.com/bots/word-chain-bot-indently/upvote)''', color=Colour.red())
         # ---------------------------------------------------------------------------------------------------------------
 
         @app_commands.command(description='Показывает 10 игроков с наибольшими очками/кармой')
