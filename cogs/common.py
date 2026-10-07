@@ -6,6 +6,7 @@ import inspect
 import logging
 import os
 import re
+import pymorphy3
 from asyncio import CancelledError
 from collections import defaultdict, deque
 from concurrent.futures import Future
@@ -32,6 +33,8 @@ from consts import (COG_NAME_COMMON, GLOBAL_BLACKLIST_2_LETTER_WORDS_EN, GLOBAL_
                     DISCORD_UNKNOWN_USER)
 from language import Language, LanguageInfo
 from model import BlacklistModel, MemberModel, ServerConfig, ServerConfigModel, WhitelistModel, WordCacheModel
+
+MORPH = pymorphy3.MorphAnalyzer()
 
 if TYPE_CHECKING:
     from main import WordChainBot
