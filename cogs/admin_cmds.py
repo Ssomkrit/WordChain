@@ -16,7 +16,7 @@ from sqlalchemy import CursorResult, delete, insert, select
 
 from consts import (COG_NAME_ADMIN_CMDS, COG_NAME_COMMON, LOGGER_NAME_ADMIN_COG, LOGGER_NAME_COMMON_COG,
                     LOGGER_NAME_GAME_COG, LOGGER_NAME_MAIN, LOGGER_NAME_MANAGER_COG, LOGGER_NAME_USER_COG, LOGGERS_LIST,
-                    SETTINGS, ИграMode)
+                    SETTINGS, GameMode)
 from model import (BannedMemberModel, BlacklistModel, MemberModel, ServerConfig, ServerConfigModel, UsedWordsModel,
                    WhitelistModel)
 
@@ -613,7 +613,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
                 config: ServerConfig = self.cog.common.server_configs[guild.id]
 
-                for game_mode in ИграMode:
+                for game_mode in GameMode:
                     if channel := self.cog.bot.get_channel(config.game_state[game_mode].channel_id):
                         try:
                             await channel.send(embed=emb)
