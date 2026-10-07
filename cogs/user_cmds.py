@@ -650,6 +650,120 @@ https://github.com/WrichikBasu/word_chain_bot_indently/blob/main/PRIVACY_POLICY.
 
     # ===================================================================================================================
 
+    class LeaderboardCmdGroup(app_commands.Group):
+
+        def __init__(self, parent_cog: UserCommandsCog):
+            super().__init__(name='leaderboard', guild_only=True)
+            self.cog: UserCommandsCog = parent_cog
+
+        # ---------------------------------------------------------------------------------------------------------------
+
+        @app_commands.command(description='Показывает 10 игроков с наибольшими очками или кармой')
+        @app_commands.describe(metric='Выберите очки или карму для сортировки рейтинга')
+        @app_commands.choices(metric=[
+            app_commands.Choice(name='score', value='score'),
+            app_commands.Choice(name='karma', value='karma')
+        ])
+        @app_commands.describe(
+            scope='Выберите игроков текущего сервера или всех игроков')
+        @app_commands.choices(scope=[
+            app_commands.Choice(name='server', value='server'),
+            app_commands.Choice(name='global', value='global')
+        ])
+        async def user(self, interaction: Interaction, metric: Optional[app_commands.Choice[str]],
+                       scope: Optional[app_commands.Choice[str]]):
+            """Command to show the top 10 users with the highest score/karma."""
+            await interaction.response.defer()
+
+            guild = interaction.guild
+            if guild is None:
+                return
+
+            board_metric: str = 'score' if metric is None else metric.value
+            board_scope: str = 'server' if scope is None else scope.value
+
+            emb = Embed(
+                title=f'Топ-10 игроков по {board_metric}',
+                color=Colour.blue(),
+                description=''
+            )
+
+            match board_scope:
+                case 'server':
+                    emb.set_author(name=guild.name,
+                                   icon_url=guild.icon.url if guild.icon else None)
+                case 'global':
+                    emb.set_author(name='Глобальный')
+
+            async with self.cog.bot.db_connection(locked=False) as connection:
+                limit = 10
+
+                match board_metric:
+                    case 'score':
+                        field = MemberModel.score
+                    case 'karma':
+                        field = MemberModel.karma
+                    case _:
+                        raise ValueError(f'Unknown metric {board_metric}')
+
+                match board_scope:
+                    case 'server':
+                        stmt = (select(MemberModel.member_id, field)
+                                .where(MemberModel.server_id == guild.id)
+                                .where(~MemberModel.member_id.in_(select(BannedMemberModel.member_id)))
+                                .where(field > 0)
+                                .order_by(field.desc())
+                                .limit(limit))
+                    case 'global':
+                        stmt = (select(MemberModel.member_id, func.sum(field))
+                                .group_by(MemberModel.member_id)
+                                .where(~MemberModel.member_id.in_(select(BannedMemberModel.member_id)))
+                                .where(field > 0)
+                                .order_by(func.sum(field).desc())
+                                .limit(limit))
+                    case _:
+                        raise ValueError(f'Unknown scope {board_scope}')
+
+                result: CursorResult = await connection.execute(stmt)
+                data: Sequence[Row[tuple[int, int | float]]] = result.fetchall()
+
+                if len(data) == 0:  # Stop when no users could be retrieved.
+                    match board_scope:
+                        case 'server':
+                            emb.description = ':warning: На этом сервере ещё никто не играл!'
+                        case 'global':
+                            emb.description = ':warning: Пока никто не играл!'
+                else:
+                    last_score_or_karma = None
+                    last_rank = 0
+                    for rank, user_data in enumerate(data, 1):
+                        member_id, score_or_karma = user_data
+                        if last_score_or_karma == score_or_karma:
+                            rank = last_rank
+                        match board_metric:
+                            case 'score':
+                                emb.description += f'`{str(rank).rjust(2, ' ')}.` <@{member_id}> **{score_or_karma}**\n'
+                            case 'karma':
+                                emb.description += f'`{str(rank).rjust(2, ' ')}.` <@{member_id}> **{score_or_karma:.2f}**\n'
+                        last_score_or_karma = score_or_karma
+                        last_rank = rank
+
+                await interaction.followup.send(embed=emb)
+
+        # ---------------------------------------------------------------------------------------------------------------
+
+        @app_commands.command(description='Показывает 10 серверов с наибольшим рекордом')
+        async def server(self, interaction: Interaction, game_mode: GameMode = GameMode.NORMAL):
+            """Command to show the top 10 servers with the highest highscore"""
+            await interaction.response.defer()
+
+            guild = interaction.guild
+            if guild is None:
+                return
+
+
+    # ===================================================================================================================
+
     class StatsCmdGroup(app_commands.Group):
 
         def __init__(self, parent_cog: UserCommandsCog):
