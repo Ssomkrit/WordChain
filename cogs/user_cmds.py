@@ -63,7 +63,7 @@ class UserCommandsCog(Cog, name=COG_NAME_USER_CMDS):
 
     # ---------------------------------------------------------------------------------------------------------------
 
-    @app_commands.command(name='support', description='Join our support server!')
+    @app_commands.command(name='support', description='Присоединиться к серверу поддержки!')
     @app_commands.guild_only()
     async def support(self, interaction: Interaction) -> None:
         await interaction.response.defer(ephemeral=True)
@@ -71,7 +71,7 @@ class UserCommandsCog(Cog, name=COG_NAME_USER_CMDS):
 
     # ---------------------------------------------------------------------------------------------------------------
 
-    @app_commands.command(name='vote', description='Vote for the bot!')
+    @app_commands.command(name='vote', description='Проголосовать за бота!')
     @app_commands.guild_only()
     async def vote(self, interaction: Interaction) -> None:
         await interaction.response.defer(ephemeral=True)
@@ -79,7 +79,7 @@ class UserCommandsCog(Cog, name=COG_NAME_USER_CMDS):
 
     # ---------------------------------------------------------------------------------------------------------------
 
-    @app_commands.command(name='show_languages', description='Lists the languages enabled in this server')
+    @app_commands.command(name='show_languages', description='Показывает языки, включённые на этом сервере')
     @app_commands.guild_only()
     async def show_languages(self, interaction: Interaction) -> None:
         await interaction.response.defer(ephemeral=True)
@@ -88,14 +88,14 @@ class UserCommandsCog(Cog, name=COG_NAME_USER_CMDS):
         if guild is None:
             return
 
-        emb: Embed = Embed(colour=Colour.gold(), title='Languages enabled in this server', description='')
+        emb: Embed = Embed(colour=Colour.gold(), title='Языки, включённые на этом сервере', description='')
         emb.description = self.common.get_current_languages_string(self.common, guild.id)
 
         await interaction.followup.send(embed=emb)
 
     # ---------------------------------------------------------------------------------------------------------------
 
-    @app_commands.command(name='check_word', description='Check if a word is correct')
+    @app_commands.command(name='check_word', description='Проверить, является ли слово правильным')
     @app_commands.describe(word='The word to check')
     @app_commands.guild_only()
     async def check_word(self, interaction: Interaction, word: str):
@@ -126,27 +126,27 @@ class UserCommandsCog(Cog, name=COG_NAME_USER_CMDS):
         status = await self.common.check_word_status(word, guild, config.languages)
         match status:
             case WordStatus.TOO_SHORT:
-                emb.description = f'❌ The word **{word}** is **not** valid.'
+                emb.description = f'❌ Слово **{word}** недействительно.'
             case WordStatus.NO_LANGUAGE_MATCH:
-                emb.description = f'❌ The word **{word}** is **not** legal.'
+                emb.description = f'❌ Слово **{word}** недопустимо.'
             case WordStatus.WHITELISTED | WordStatus.WORD_EXISTS:
                 emb.description = f'''✅ The word **{word}** is valid.\n
 -# Please note that the validity of words is checked only for the languages that are enabled in the server. \
 Therefore, a word that is valid in this server may not be valid in another server.'''
             case WordStatus.BLACKLISTED:
-                emb.description = f'❌ The word **{word}** is **blacklisted** and therefore **not** valid.'
+                emb.description = f'❌ Слово **{word}** в чёрном списке и недействительно.'
             case WordStatus.WORD_DOESNT_EXIST:
                 emb.description = emb.description = f'''❌ The word **{word}** is **NOT** valid.\n
 -# Please note that the validity of words is checked only for the languages that are enabled in the server. \
 Therefore, a word that is valid in this server may not be valid in another server.'''
             case WordStatus.ERROR | _:
-                emb.description = f'⚠️ There was an issue in processing your request.'
+                emb.description = f'⚠️ При обработке запроса произошла ошибка.'
 
         await interaction.followup.send(embed=emb)
 
     # ---------------------------------------------------------------------------------------------------------------
 
-    @app_commands.command(name='definition', description='Check the definition of a word')
+    @app_commands.command(name='definition', description='Проверить значение слова')
     @app_commands.describe(word='The word to check')
     @app_commands.guild_only()
     async def definition(self, interaction: Interaction, word: str):
@@ -168,9 +168,9 @@ Therefore, a word that is valid in this server may not be valid in another serve
                 data = self.common.query_wiktionary_definitions(word, config.languages)
 
                 if data is None:
-                    emb.description = f'⚠️ There was an issue in processing your request.'
+                    emb.description = f'⚠️ При обработке запроса произошла ошибка.'
                 elif len(data) == 0:
-                    emb.description = f'No definition was found for **{word}** in any of your used languages.'
+                    emb.description = f'Для слова **{word}** не найдено определение ни на одном из включённых языков.'
                 else:
                     emb.description = "\n".join(
                         f"**{language.display_name} {d.part_of_speech.lower()}**: {d.definitions[0].definition}"
@@ -179,15 +179,15 @@ Therefore, a word that is valid in this server may not be valid in another serve
                         if d.definitions and d.definitions[0].definition
                     )
             case WordStatus.WORD_DOESNT_EXIST | WordStatus.BLACKLISTED | WordStatus.NO_LANGUAGE_MATCH | WordStatus.TOO_SHORT:
-                emb.description = f'The word **{word}** is not valid and therefore no definition is available.'
+                emb.description = f'Слово **{word}** недействительно, поэтому определение недоступно.'
             case WordStatus.ERROR | _:
-                emb.description = f'⚠️ There was an issue in processing your request.'
+                emb.description = f'⚠️ При обработке запроса произошла ошибка.'
 
         await interaction.followup.send(embed=emb)
 
     # ---------------------------------------------------------------------------------------------------------------
 
-    @app_commands.command(name='help', description='Shows the help menu')
+    @app_commands.command(name='help', description='Показывает меню помощи')
     @app_commands.guild_only()
     async def help(self, interaction: Interaction) -> None:
 
@@ -195,7 +195,7 @@ Therefore, a word that is valid in this server may not be valid in another serve
 
         help_cmd: UserCommandsCog.HelpCommand = UserCommandsCog.HelpCommand(self, interaction)
         view1: discord.ui.View = discord.ui.View().add_item(help_cmd.get_dropdown())
-        embed: Embed = Embed(title='Help Menu', colour=Colour.blurple(), description=f'Please choose an option below.')
+        embed: Embed = Embed(title='Меню помощи', colour=Colour.blurple(), description=f'Выберите раздел ниже.')
 
         msg: discord.Message = await interaction.followup.send(embed=embed, view=view1, wait=True)
         help_cmd.original_message_id = msg.id
@@ -227,25 +227,25 @@ Therefore, a word that is valid in this server may not be valid in another serve
 
         def get_dropdown(self) -> Dropdown:
 
-            options_list: list[SelectOption] = [SelectOption(label="How to play",
+            options_list: list[SelectOption] = [SelectOption(label="Как играть",
                                                              value=UserCommandsCog.HelpCommand.__HOW_TO_PLAY),
-                                                SelectOption(label="Game rules",
+                                                SelectOption(label="Правила игры",
                                                              value=UserCommandsCog.HelpCommand.__GAME_RULES),
-                                                SelectOption(label="Karma system",
+                                                SelectOption(label="Система кармы",
                                                              value=UserCommandsCog.HelpCommand.__KARMA_SYSTEM),
-                                                SelectOption(label="Multi-language support",
+                                                SelectOption(label="Поддержка нескольких языков",
                                                              value=UserCommandsCog.HelpCommand.__MULTI_LANGUAGE),
-                                                SelectOption(label="Vote for the bot!!",
+                                                SelectOption(label="Проголосовать за бота!!",
                                                              value=UserCommandsCog.HelpCommand.__VOTE),
-                                                SelectOption(label="List of commands",
+                                                SelectOption(label="Список команд",
                                                              value=UserCommandsCog.HelpCommand.__LIST_OF_COMMANDS),
-                                                SelectOption(label="Set up the bot in your server",
+                                                SelectOption(label="Настройка бота на сервере",
                                                              value=UserCommandsCog.HelpCommand.__SETUP_IN_SERVER),
-                                                SelectOption(label="Privacy Policy",
+                                                SelectOption(label="Политика конфиденциальности",
                                                              value=UserCommandsCog.HelpCommand.__PRIVACY_POLICY),
-                                                SelectOption(label="Support server",
+                                                SelectOption(label="Сервер поддержки",
                                                              value=UserCommandsCog.HelpCommand.__SUPPORT_SERVER),
-                                                SelectOption(label="Credits and other info",
+                                                SelectOption(label="Авторы и другая информация",
                                                              value=UserCommandsCog.HelpCommand.__OTHER_INFO)
                                                 ]
 
@@ -315,8 +315,8 @@ Therefore, a word that is valid in this server may not be valid in another serve
         @staticmethod
         def get_how_to_play_embed() -> Embed:
 
-            return Embed(title="How to play", description=f'''\
-## Normal Mode
+            return Embed(title="Как играть", description=f'''\
+## Обычный режим
 The game is pretty simple.
 
 - Enter a word that starts with the last letter of the previous correct word.  
@@ -336,8 +336,8 @@ last letter of the previous correct word.
 
 That's all. Go and beat the high score in your server and top the global leaderboard!! :fire:
 
-## Hard Mode
-Hard Mode is the same as normal mode, except that the first **two letters** of a word must be the 
+## Сложный режим
+Сложный режим is the same as normal mode, except that the first **two letters** of a word must be the 
 same as the last two letters of the previous word.
 ''', colour=Colour.dark_orange())
 
@@ -346,7 +346,7 @@ same as the last two letters of the previous word.
         @staticmethod
         def get_game_rules_embed() -> Embed:
 
-            return Embed(title="Global game rules", description=f'''\
+            return Embed(title="Общие правила игры", description=f'''\
 You are **not** allowed to use any automation/botting of *any* kind under any circumstances. If you are reported, \
 you will be banned from the bot for a lifetime.
 
@@ -359,7 +359,7 @@ have other rules that are not covered here. Please check with the server moderat
         @staticmethod
         def get_multi_language_embed() -> Embed:
 
-            return Embed(title="Multi-language support", description=f'''\
+            return Embed(title="Поддержка нескольких языков", description=f'''\
 The bot now allows you to enable up to two languages in a server.
 
 The following languages are supported:
@@ -396,7 +396,7 @@ a restart), and thereby mislead users on what the last correct word is.
 reaction role giving access to the game channel. This will make sure that people will be able to play \
 only after agreeing that they have read the rules.
 
-For multi-language setup, see the `Multi-language support` section in the `/help` command.''', colour=Colour.yellow())
+For multi-language setup, see the `Поддержка нескольких языков` section in the `/help` command.''', colour=Colour.yellow())
 
         # ------------------------------------------------------------------------------------------------------------
 
@@ -429,13 +429,13 @@ for the next player)
 karma > {RELIABLE_ROLE_KARMA_THRESHOLD} and accuracy > {RELIABLE_ROLE_ACCURACY_THRESHOLD:.1%}.\
 '''
 
-            return Embed(title='The Karma System', description=description, colour=Colour.green())
+            return Embed(title='Система кармы', description=description, colour=Colour.green())
 
         # ------------------------------------------------------------------------------------------------------------
 
         @staticmethod
         def get_support_server_embed() -> Embed:
-            return Embed(title='Support Server', description=f'''\
+            return Embed(title='Сервер поддержки', description=f'''\
 For any questions, suggestions or bug reports, or if you just want to hang out with a cool community of word chain \
 players, feel free to join our support server:
 
@@ -445,18 +445,18 @@ https://discord.gg/yhbzVGBNw3''', colour=Colour.pink())
 
         @staticmethod
         def get_cmd_list_embed(interaction: Interaction) -> Embed:
-            emb = Embed(title='Slash Commands', color=Colour.blue(),
+            emb = Embed(title='Команды', color=Colour.blue(),
                         description='''\
-`/stats user` - Shows the stats of a specific user.
-`/stats server` - Shows the stats of the current server.
-`/check_word` - Check if a word exists/check the spelling.
-`/definition` - Check the definition of a word.
-`/leaderboard user` - Shows the leaderboard of players.
-`/leaderboard server` - Shows the global leaderboard of servers.
-`/show_languages` - Lists all the currently enabled languages.
-`/support` - Posts the invitation link to the support server.
-`/vote` - Posts the link to top.gg and discordbotlist.com to vote for Word Chain Bot.
-`/help` - Shows this help page.''')
+`/stats user` — Показывает статистику игрока.
+`/stats server` — Показывает статистику сервера.
+`/check_word` — Проверяет существование и написание слова.
+`/definition` - Проверить значение слова.
+`/leaderboard user` — Показывает рейтинг игроков.
+`/leaderboard server` — Показывает глобальный рейтинг серверов.
+`/show_languages` — Показывает включённые языки.
+`/support` — Показывает ссылку на сервер поддержки.
+`/vote` — Показывает ссылки для голосования за бота.
+`/help` — Показывает эту справку.''')
 
             member = interaction.user
             if not isinstance(member, discord.Member):
@@ -464,28 +464,28 @@ https://discord.gg/yhbzVGBNw3''', colour=Colour.pink())
 
             if member.guild_permissions.manage_guild:
                 emb.description += '''\n
-**Restricted commands — Server Managers only**
-`/set channel` - Sets the channel to chain words. You can set up normal and hard mode at the same time.
-`/set failed_role` - Sets the role to give when a user fails.
-`/set reliable_role` - Sets the reliable role.
+**Команды для менеджеров сервера**
+`/set channel` — Настраивает канал для игры.
+`/set failed_role` — Настраивает роль за ошибку.
+`/set reliable_role` — Настраивает надёжную роль.
 
-`/language show-all` - Shows all supported languages and their codes.
-`/language add` - Enable a language for this server. You can add up to two languages to your server.
-`/language remove` - Removes a language from the list of enabled languages.
+`/language show-all` — Показывает поддерживаемые языки и их коды.
+`/language add` — Включает язык на сервере.
+`/language remove` — Отключает язык.
 
-`/unset failed_role` - Unsets the role to give when a user fails.
-`/unset reliable_role` - Unset the reliable role.
+`/unset failed_role` — Убирает роль за ошибку.
+`/unset reliable_role` — Убирает надёжную роль.
 
-`/blacklist add` - Add a word to the blacklist for this server.
-`/blacklist remove` - Remove a word from the blacklist of this server.
-`/blacklist show` - Show the blacklisted words for this server.
+`/blacklist add` — Добавляет слово в чёрный список.
+`/blacklist remove` — Убирает слово из чёрного списка.
+`/blacklist show` — Показывает чёрный список.
 
-`/whitelist add` - Add a word to the whitelist for this server.
-`/whitelist remove` - Remove a word from the whitelist of this server.
-`/whitelist show` - Show the whitelist words for this server.
+`/whitelist add` — Добавляет слово в белый список.
+`/whitelist remove` — Убирает слово из белого списка.
+`/whitelist show` — Показывает белый список.
 
-`/health_check` - Performs a health check on your server to check if the permissions are set correctly.
-`/reset_stats` - Resets all your server's stats, but your configuration is kept.'''
+`/health_check` — Проверяет настройки и права бота.
+`/reset_stats` — Сбрасывает статистику сервера, сохраняя настройки.'''
 
             guild = interaction.guild
             if guild is None:
@@ -493,23 +493,23 @@ https://discord.gg/yhbzVGBNw3''', colour=Colour.pink())
 
             if member.guild_permissions.administrator and guild.id == SETTINGS.admin_guild_id:
                 emb.description += '''\n
-**Restricted commands — Bot Admins only**
-`/announce` - Sends an announcement to all servers into the game channels.
-`/reload` - Reload a specific Cog (or all Cogs).
-`/ban_server` - Bans and unbans a server from the global leaderboard.
-`/ban_member` - Bans and unubans a player globally to participate in playing word chain.
-`/purge_data server` - Remove all data associated with a server.
-`/purge_data user` - Remove all data associated with a user.
-`/reset_config` - Resets all data of a server and provides a fresh config.
-`/list_servers` - Exports a list with all server names, server IDs and the owners user ID.
-`/admin_health_check` - Performs a health check on a server to check if the permissions are set correctly.
-`/logging status` - Shows the status of the loggers.
-`/logging enable_all` - Enables the loggers.
-`/logging disable_all` - Disables the loggers.
-`/logging enable_logger` - Enables a specific logger.
-`/logging disable_logger` - Disables a specific logger.
-`/logging set_level` - Sets the log level of a specific logger/all loggers.
-`/logging test` - Tests a specific logger.'''
+**Команды только для администраторов бота**
+`/announce` — Отправляет объявление на игровые каналы всех серверов.
+`/reload` — Перезагружает модуль (или все модули).
+`/ban_server` — Управляет блокировкой сервера в глобальном рейтинге.
+`/ban_member` — Управляет глобальной блокировкой игрока.
+`/purge_data server` — Удаляет данные сервера.
+`/purge_data user` — Удаляет данные игрока.
+`/reset_config` — Сбрасывает данные сервера и создаёт настройки заново.
+`/list_servers` — Экспортирует список серверов и владельцев.
+`/admin_health_check` — Проверяет настройки и права бота.
+`/logging status` — Показывает состояние журналов.
+`/logging enable_all` — Включает журналы.
+`/logging disable_all` — Отключает журналы.
+`/logging enable_logger` — Включает выбранный журнал.
+`/logging disable_logger` — Отключает выбранный журнал.
+`/logging set_level` — Настраивает уровень журнала.
+`/logging test` — Проверяет выбранный журнал.'''
 
             return emb
 
@@ -518,7 +518,7 @@ https://discord.gg/yhbzVGBNw3''', colour=Colour.pink())
         @staticmethod
         def get_privacy_policy_embed() -> Embed:
 
-            return Embed(title='Privacy Policy', description=f'''\
+            return Embed(title='Политика конфиденциальности', description=f'''\
 The privacy policy is available \
 [here](https://github.com/WrichikBasu/word_chain_bot_indently/blob/main/PRIVACY_POLICY.md).''',
                          color=Colour.yellow())
@@ -537,8 +537,8 @@ The bot is currently hosted on Hetzner, provided by <@841541609052307458> and hi
 - **Credits**
   - Base code taken from [Counting Bot Indently](https://github.com/guanciottaman/counting_bot_indently).
   - Base code modified for the Word Chain Bot by <@1024746441798856717>.
-  - Karma system and multi-server support completely designed by <@329857455423225856>.
-  - Multi-language support by <@1024746441798856717>, with inputs from <@329857455423225856>.
+  - Система кармы and multi-server support completely designed by <@329857455423225856>.
+  - Поддержка нескольких языков by <@1024746441798856717>, with inputs from <@329857455423225856>.
 - **What/who is "Indently"?**
 This bot was created for the [Indently Discord server](https://discord.com/invite/indently-1040343818274340935), \
 and is owned by the Indently Bot Dev Team. Federico, the founder of Indently, has kindly allowed us to keep the \
@@ -550,7 +550,7 @@ check out the Indently Discord linked above!)''', colour=Colour.teal())
         @staticmethod
         def get_vote_embed() -> Embed:
 
-            return Embed(title='Vote for the bot!', description=f'''\
+            return Embed(title='Проголосовать за бота!', description=f'''\
 **Word Chain Bot Indently** is an open-source bot. We developers do not earn anything from it, but it \
 is your excitement that fuels us to continue working on it. We will really appreciate it if you vote for our bot, \
 as it will allow more people discover it!
@@ -569,14 +569,14 @@ as it will allow more people discover it!
 
         # ---------------------------------------------------------------------------------------------------------------
 
-        @app_commands.command(description='Shows the first 10 users with the highest score/karma')
-        @app_commands.describe(metric='Use either score or karma for ordering the leaderboard')
+        @app_commands.command(description='Показывает 10 игроков с наибольшими очками/кармой')
+        @app_commands.describe(metric='Выберите очки или карму для сортировки рейтинга')
         @app_commands.choices(metric=[
             app_commands.Choice(name='score', value='score'),
             app_commands.Choice(name='karma', value='karma')
         ])
         @app_commands.describe(
-            scope='Use either users from the current server or all users globally for the leaderboard')
+            scope='Выберите игроков текущего сервера или всех игроков')
         @app_commands.choices(scope=[
             app_commands.Choice(name='server', value='server'),
             app_commands.Choice(name='global', value='global')
@@ -594,7 +594,7 @@ as it will allow more people discover it!
             board_scope: str = 'server' if scope is None else scope.value
 
             emb = Embed(
-                title=f'Top 10 users by {board_metric}',
+                title=f'Топ-10 игроков по {board_metric}',
                 color=Colour.blue(),
                 description=''
             )
@@ -641,9 +641,9 @@ as it will allow more people discover it!
                 if len(data) == 0:  # Stop when no users could be retrieved.
                     match board_scope:
                         case 'server':
-                            emb.description = ':warning: No users have played in this server yet!'
+                            emb.description = ':warning: На этом сервере ещё никто не играл!'
                         case 'global':
-                            emb.description = ':warning: No users have played yet!'
+                            emb.description = ':warning: Пока никто не играл!'
                 else:
                     last_score_or_karma = None
                     last_rank = 0
@@ -663,7 +663,7 @@ as it will allow more people discover it!
 
         # ---------------------------------------------------------------------------------------------------------------
 
-        @app_commands.command(description='Shows the first 10 servers with the highest highscore')
+        @app_commands.command(description='Показывает 10 серверов с наибольшим рекордом')
         async def server(self, interaction: Interaction, game_mode: GameMode = GameMode.NORMAL):
             """Command to show the top 10 servers with the highest highscore"""
             await interaction.response.defer()
@@ -678,10 +678,10 @@ as it will allow more people discover it!
                 match game_mode:
                     case GameMode.NORMAL:
                         high_score_column = ServerConfigModel.high_score
-                        game_mode_name = 'Normal Mode'
+                        game_mode_name = 'Обычный режим'
                     case GameMode.HARD:
                         high_score_column = ServerConfigModel.hard_mode_high_score
-                        game_mode_name = 'Hard Mode'
+                        game_mode_name = 'Сложный режим'
 
                 stmt = (select(ServerConfigModel.server_id, high_score_column)
                         .where(
@@ -692,7 +692,7 @@ as it will allow more people discover it!
                         .limit(limit))
 
                 emb = Embed(
-                    title=f'Top 10 servers by highscore',
+                    title=f'Топ-10 серверов по рекорду',
                     color=Colour.blue(),
                     description=''
                 ).set_author(name=f'Global ({game_mode_name})')
@@ -722,7 +722,7 @@ as it will allow more people discover it!
 
         # ---------------------------------------------------------------------------------------------------------------
 
-        @app_commands.command(description='Show the server stats for the word chain game')
+        @app_commands.command(description='Показывает статистику игры в слова на сервере')
         async def server(self, interaction: Interaction, game_mode: GameMode = GameMode.NORMAL) -> None:
             """Command to show the stats of the server"""
             await interaction.response.defer()
@@ -735,7 +735,7 @@ as it will allow more people discover it!
             config: ServerConfig = self.cog.common.server_configs[guild.id]
 
             if config.game_state[game_mode].channel_id is None:  # channel not set yet
-                await interaction.followup.send("Word Chain channel not set yet!")
+                await interaction.followup.send("Канал для игры ещё не настроен!")
                 return
 
             server_stats_embed = Embed(
@@ -753,8 +753,8 @@ Longest chain length: {config.game_state[game_mode].high_score}
 
         # ---------------------------------------------------------------------------------------------------------------
 
-        @app_commands.command(description='Show the user stats for the word chain game')
-        @app_commands.describe(member="The user whose stats you want to see")
+        @app_commands.command(description='Показывает статистику игрока в игре в слова')
+        @app_commands.describe(member="Игрок, чью статистику показать")
         async def user(self, interaction: Interaction, member: Optional[discord.Member]) -> None:
             """Command to show the stats of a specific user"""
             await interaction.response.defer()
@@ -784,9 +784,9 @@ Longest chain length: {config.game_state[game_mode].high_score}
 
                 if row is None:
                     if member is None:
-                        await interaction.followup.send('You have never played in this server!')
+                        await interaction.followup.send('Вы ещё не играли на этом сервере!')
                     else:
-                        await interaction.followup.send(f'{member} has never played in this server!')
+                        await interaction.followup.send(f'{member} ещё не играл на этом сервере!')
                     return
 
                 db_member = Member.model_validate(row)
@@ -807,11 +807,11 @@ Longest chain length: {config.game_state[game_mode].high_score}
 
                 emb = discord.Embed(
                     color=discord.Color.blue(),
-                    description=f'''**Score:** {db_member.score} (#{pos_by_score})
+                    description=f'''**Очки:** {db_member.score} (#{pos_by_score})
 **🌟Karma:** {db_member.karma:.2f} (#{pos_by_karma})
-**✅Correct:** {db_member.correct}
-**❌Wrong:** {db_member.wrong}
-**Accuracy:** {(db_member.correct / (db_member.correct + db_member.wrong)):.2%}'''
+**✅Правильных:** {db_member.correct}
+**❌Ошибок:** {db_member.wrong}
+**Точность:** {(db_member.correct / (db_member.correct + db_member.wrong)):.2%}'''
                 ).set_author(name=f"{scope_member} | stats", icon_url=get_member_avatar())
 
                 await interaction.followup.send(embed=emb)
