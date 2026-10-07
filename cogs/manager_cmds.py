@@ -13,14 +13,14 @@ from discord.ext.commands import Cog
 from sqlalchemy import CursorResult, delete, insert, select
 from sqlalchemy.exc import SQLAlchemyОшибка
 
-from consts import COG_NAME_COMMON, COG_NAME_MANAGER_CMDS, LOGGER_NAME_MANAGER_COG, GameMode, \
+from consts import COG_NAME_COMMON, COG_NAME_MANAGER_CMDS, LOGGER_NAME_MANAGER_COG, ИграMode, \
     RELIABLE_ROLE_KARMA_THRESHOLD, RELIABLE_ROLE_ACCURACY_THRESHOLD, DISCORD_UNKNOWN_MEMBER, DISCORD_UNKNOWN_ROLE, \
     DISCORD_UNKNOWN_USER
 from language import Language
-from model import BlacklistModel, GameModeState, MemberModel, WhitelistModel, ServerConfig, ServerConfigModel
+from model import BlacklistModel, ИграModeState, MemberModel, WhitelistModel, ServerConfig, ServerConfigModel
 
 if TYPE_CHECKING:
-    from cogs.common import CommonCog
+    from cogs.common import ОбщиеCog
     from main import WordChainBot
 
 fileConfig(fname='config.ini')
@@ -38,9 +38,9 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
         self.bot.tree.add_command(ManagerCommandsCog.LanguageCmdGroup(self))
 
     @property
-    def common(self) -> CommonCog:
+    def common(self) -> ОбщиеCog:
         for _ in range(5):
-            cog: CommonCog | None = self.bot.get_cog(COG_NAME_COMMON) # noqa
+            cog: ОбщиеCog | None = self.bot.get_cog(COG_NAME_COMMON) # noqa
             if cog is not None:
                 return cog # noqa
             time.sleep(.2)
@@ -49,7 +49,7 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
     # ----------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def is_generally_illegal_word(common: CommonCog, word: str, server_id: int):
+    def is_generally_illegal_word(common: ОбщиеCog, word: str, server_id: int):
         valid_languages = common.server_configs[server_id].languages
         return not any(common.word_matches_pattern(word.lower(), language.value) for language in valid_languages)
 
@@ -84,8 +84,8 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
 
         await self.common.ensure_config(guild)
         config = self.common.server_configs[guild.id]
-        config.game_state[GameMode.NORMAL] = GameModeState()
-        config.game_state[GameMode.HARD] = GameModeState()
+        config.game_state[ИграMode.NORMAL] = ИграModeState()
+        config.game_state[ИграMode.HARD] = ИграModeState()
         config.failed_member_id = None
 
         async with self.bot.db_connection() as connection:
@@ -98,12 +98,12 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
 
                 await connection.execute(stmt)
                 await connection.commit()
-                emb: Embed = Embed(title='Success', colour=Colour.green(),
-                                   description=f'''Stats have been reset.''')
+                emb: Embed = Embed(title='Готово', colour=Colour.green(),
+                                   description=f'''Статистика сброшена.''')
             except SQLAlchemyОшибка as e:
                 logger.error(e)
                 emb: Embed = Embed(title='Ошибка', colour=Colour.red(),
-                                   description=f'''There was an error. Changes might not have been saved.''')
+                                   description=f'''Произошла ошибка. Изменения могли не сохраниться.''')
 
         await interaction.followup.send(embed=emb)
 
@@ -184,7 +184,7 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
                 await self.cog.common.add_remove_reliable_role(guild, connection)
                 await connection.commit()
 
-                emb: Embed = Embed(title='Success', colour=Colour.green(),
+                emb: Embed = Embed(title='Готово', colour=Colour.green(),
                                    description=f'''Надёжная роль установлена:  {role.mention}!''')
                 await interaction.followup.send(embed=emb)
 
@@ -227,7 +227,7 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
                 await self.cog.common.add_remove_failed_role(guild, connection)
                 await connection.commit()
 
-                emb: Embed = Embed(title='Success', colour=Colour.green(),
+                emb: Embed = Embed(title='Готово', colour=Colour.green(),
                                    description=f'''Роль за ошибку установлена:  {role.mention}.''')
                 await interaction.followup.send(embed=emb)
 
@@ -236,7 +236,7 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
         @app_commands.command(name='channel', description='Настраивает игровой канал')
         @app_commands.describe(channel='The channel where the game will be played')
         @app_commands.describe(game_mode='Configure either for normal mode or for hard mode')
-        async def set_channel(self, interaction: Interaction, channel: TextChannel, game_mode: GameMode):
+        async def set_channel(self, interaction: Interaction, channel: TextChannel, game_mode: ИграMode):
             """Command to set the play channel"""
             await interaction.response.defer()
 
@@ -244,7 +244,7 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
             if guild is None:
                 return
 
-            other_game_mode = GameMode.HARD if game_mode == GameMode.NORMAL else GameMode.NORMAL
+            other_game_mode = ИграMode.HARD if game_mode == ИграMode.NORMAL else ИграMode.NORMAL
             await self.cog.common.ensure_config(guild)
             config = self.cog.common.server_configs[guild.id]
 
@@ -258,8 +258,8 @@ to the other game mode!''')
                 extra_information = 'Start there with any valid word you like.' \
                     if config.game_state[game_mode].current_word is None else \
                     f'The last valid word was `{config.game_state[game_mode].current_word}`.'
-                emb: Embed = Embed(title='Success', colour=Colour.green(),
-                                   description=f'''Канал цепочки для режима {game_mode.name.lower()} game mode настроен на 
+                emb: Embed = Embed(title='Готово', colour=Colour.green(),
+                                   description=f'''Канал цепочки для режима {game_mode.name.lower()} режим настроен на 
 {channel.mention}. {extra_information}''')
 
             await interaction.followup.send(embed=emb)
@@ -305,7 +305,7 @@ to the other game mode!''')
                         else:
                             raise
                 self.cog.common.server_reliable_roles[guild.id] = None
-                emb: Embed = Embed(title='Success', colour=Colour.green(),
+                emb: Embed = Embed(title='Готово', colour=Colour.green(),
                                    description='Надёжная роль отключена.' + (
                                        f' Note: {role.mention} could not be unassigned due to permission errors.'
                                        if cleanup_failed else '')
@@ -353,7 +353,7 @@ to the other game mode!''')
                         else:
                             raise
                 self.cog.common.server_failed_roles[guild.id] = None
-                emb: Embed = Embed(title='Success', colour=Colour.green(),
+                emb: Embed = Embed(title='Готово', colour=Colour.green(),
                                    description='Роль за ошибку отключена.' + (
                                        f' Note: {role.mention} could not be unassigned due to permission errors.'
                                        if cleanup_failed else '')
