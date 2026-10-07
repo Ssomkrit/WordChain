@@ -17,11 +17,11 @@ from sqlalchemy import CursorResult, delete, insert, select
 from consts import (COG_NAME_ADMIN_CMDS, COG_NAME_COMMON, LOGGER_NAME_ADMIN_COG, LOGGER_NAME_COMMON_COG,
                     LOGGER_NAME_GAME_COG, LOGGER_NAME_MAIN, LOGGER_NAME_MANAGER_COG, LOGGER_NAME_USER_COG, LOGGERS_LIST,
                     SETTINGS, ИграMode)
-from model import (ЗаблокированMemberModel, BlacklistModel, MemberModel, ServerConfig, ServerConfigModel, UsedWordsModel,
+from model import (BannedMemberModel, BlacklistModel, MemberModel, ServerConfig, ServerConfigModel, UsedWordsModel,
                    WhitelistModel)
 
 if TYPE_CHECKING:
-    from cogs.common import ОбщиеCog
+    from cogs.common import CommonCog
     from main import WordChainBot
 
 fileConfig(fname='config.ini')
@@ -40,13 +40,13 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
         self.bot.tree.add_command(AdminCommandsCog.ResetCmdGroup(self))
 
     @property
-    def common(self) -> ОбщиеCog:
+    def common(self) -> CommonCog:
         for _ in range(5):
-            cog: ОбщиеCog | None = self.bot.get_cog(COG_NAME_COMMON) # noqa
+            cog: CommonCog | None = self.bot.get_cog(COG_NAME_COMMON) # noqa
             if cog is not None:
                 return cog # noqa
             time.sleep(.2)
-        raise ValueОшибка(f'Cog {COG_NAME_COMMON} not found')
+        raise ValueError(f'Cog {COG_NAME_COMMON} not found')
 
     # -----------------------------------------------------------------------------------------------------------------
 
@@ -79,7 +79,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
         # but most IDs are 64-bit
         try:
             guild_id_as_number = int(guild_id)
-        except ValueОшибка:
+        except ValueError:
             await interaction.followup.send('Это недействительный ID!')
             return
 
@@ -98,7 +98,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
         try:
             cache_config = self.common.server_configs[guild_id_as_number]
-        except KeyОшибка:
+        except KeyError:
             items.append('Server config not present in cache!\n')
 
         async with self.bot.db_connection() as connection:
@@ -457,7 +457,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
             # but most IDs are 64-bit
             try:
                 guild_id_as_number = int(guild_id)
-            except ValueОшибка:
+            except ValueError:
                 await interaction.followup.send('Это недействительный ID!')
                 return
 
@@ -515,7 +515,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
             # but most IDs are 64-bit
             try:
                 user_id_as_number = int(user_id)
-            except ValueОшибка:
+            except ValueError:
                 await interaction.followup.send('Это недействительный ID!')
                 return
 
@@ -553,7 +553,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
             # but most IDs are 64-bit
             try:
                 guild_id_as_number = int(guild_id)
-            except ValueОшибка:
+            except ValueError:
                 await interaction.followup.send('Это недействительный ID!')
                 return
 
@@ -652,7 +652,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
             try:
                 emb: Embed = Embed.from_dict(json.loads(json_str))
                 await interaction.followup.send(embed=await self.__send_announcement(emb))
-            except json.JSONDecodeОшибка:
+            except json.JSONDecodeError:
                 await interaction.followup.send('Неверная строка JSON!')
                 return
 
@@ -679,7 +679,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
             # but most IDs are 64-bit
             try:
                 guild_id_as_number = int(guild_id)
-            except ValueОшибка:
+            except ValueError:
                 await interaction.followup.send('Это недействительный ID!')
                 return
 
@@ -768,18 +768,18 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
             # but most IDs are 64-bit
             try:
                 member_id_as_number = int(member_id)
-            except ValueОшибка:
+            except ValueError:
                 await interaction.followup.send('Это недействительный ID!')
                 return
 
             async with self.cog.bot.db_connection() as connection:
                 if ban:
-                    stmt = insert(ЗаблокированMemberModel).values(
+                    stmt = insert(BannedMemberModel).values(
                         member_id=member_id_as_number
                     )
                 else:
-                    stmt = delete(ЗаблокированMemberModel).where(
-                        ЗаблокированMemberModel.member_id == member_id_as_number
+                    stmt = delete(BannedMemberModel).where(
+                        BannedMemberModel.member_id == member_id_as_number
                     )
 
                 result = await connection.execute(stmt)
@@ -800,7 +800,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
             await interaction.response.defer()
 
             async with self.cog.bot.db_connection() as connection:
-                stmt = select(ЗаблокированMemberModel.member_id)
+                stmt = select(BannedMemberModel.member_id)
                 result = await connection.execute(stmt)
                 member_ids = [row[0] for row in result]
 
