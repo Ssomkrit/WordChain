@@ -96,7 +96,7 @@ class UserCommandsCog(Cog, name=COG_NAME_USER_CMDS):
     # ---------------------------------------------------------------------------------------------------------------
 
     @app_commands.command(name='check_word', description='Проверить, является ли слово правильным')
-    @app_commands.describe(word='The word to check')
+    @app_commands.describe(word='Слово для проверки')
     @app_commands.guild_only()
     async def check_word(self, interaction: Interaction, word: str):
         """
@@ -130,15 +130,15 @@ class UserCommandsCog(Cog, name=COG_NAME_USER_CMDS):
             case WordStatus.NO_LANGUAGE_MATCH:
                 emb.description = f'❌ Слово **{word}** недопустимо.'
             case WordStatus.WHITELISTED | WordStatus.WORD_EXISTS:
-                emb.description = f'''✅ The word **{word}** is valid.\n
--# Please note that the validity of words is checked only for the languages that are enabled in the server. \
-Therefore, a word that is valid in this server may not be valid in another server.'''
+                emb.description = f'''✅ Слово **{word}** является допустимым.\n
+-# Обратите внимание: проверка слов выполняется только для языков, включённых на сервере. \
+Поэтому слово, допустимое на этом сервере, может быть недопустимо на другом сервере.'''
             case WordStatus.BLACKLISTED:
                 emb.description = f'❌ Слово **{word}** в чёрном списке и недействительно.'
             case WordStatus.WORD_DOESNT_EXIST:
-                emb.description = emb.description = f'''❌ The word **{word}** is **NOT** valid.\n
--# Please note that the validity of words is checked only for the languages that are enabled in the server. \
-Therefore, a word that is valid in this server may not be valid in another server.'''
+                emb.description = emb.description = f'''❌ Слово **{word}** является **недопустимым**.\n
+-# Обратите внимание: проверка слов выполняется только для языков, включённых на сервере. \
+Поэтому слово, допустимое на этом сервере, может быть недопустимо на другом сервере.'''
             case WordStatus.ERROR | _:
                 emb.description = f'⚠️ При обработке запроса произошла ошибка.'
 
@@ -147,7 +147,7 @@ Therefore, a word that is valid in this server may not be valid in another serve
     # ---------------------------------------------------------------------------------------------------------------
 
     @app_commands.command(name='definition', description='Проверить значение слова')
-    @app_commands.describe(word='The word to check')
+    @app_commands.describe(word='Слово для проверки')
     @app_commands.guild_only()
     async def definition(self, interaction: Interaction, word: str):
         await interaction.response.defer(ephemeral=True)
