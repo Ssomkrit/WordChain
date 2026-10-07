@@ -35,6 +35,39 @@ from language import Language, LanguageInfo
 from model import BlacklistModel, MemberModel, ServerConfig, ServerConfigModel, WhitelistModel, WordCacheModel
 
 MORPH = pymorphy3.MorphAnalyzer()
+RUSSIAN_BRAND_BLACKLIST = {
+    "адидас",
+    "самсунг",
+    "пепси",
+    "кока-кола",
+    "найк",
+    "пума",
+    "рибок",
+    "эппл",
+    "гугл",
+    "майкрософт",
+    "сони",
+    "нокиа",
+    "хуавей",
+    "сяоми",
+    "моторола",
+    "тесла",
+    "тойота",
+    "бмв",
+    "мерседес",
+    "ауди",
+    "фольксваген",
+    "лада",
+    "камаз",
+    "яндекс",
+    "мегафон",
+    "билайн",
+    "мтс",
+    "ростелеком",
+    "газпром",
+    "сбер",
+    "тинькофф",
+}
 
 if TYPE_CHECKING:
     from main import WordChainBot
@@ -432,7 +465,12 @@ class CommonCog(Cog, name=COG_NAME_COMMON):
         """
       
         if language_info.code == 'ru':
-            parsed = MORPH.parse(word.lower())
+            word_lower = word.lower()
+
+            if word_lower in RUSSIAN_BRAND_BLACKLIST:
+                return False
+
+            parsed = MORPH.parse(word_lower)
             if not parsed:
                 return False
 
