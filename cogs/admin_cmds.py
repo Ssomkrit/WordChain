@@ -235,7 +235,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                         queried_logger.disabled = True
                         emb.description += f'✅ Журнал `{queried_logger.name}` отключён.\n'
                 else:
-                    emb.description += f'❌ Logger `{logger_name}` not found.\n'
+                    emb.description += f'❌ Журнал `{logger_name}` не найден.\n'
 
             await interaction.followup.send(embed=emb)
 
@@ -264,7 +264,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
                     if reset_level:
                         queried_logger.setLevel(logging.INFO)
-                        emb.description += f'Log level set to `INFO`.\n\n'
+                        emb.description += f'Уровень журналирования установлен на `INFO`.\n\n'
                 else:
                     emb.description += f'❌ Журнал `{logger_name}` не найден.\n\n'
 
@@ -290,10 +290,10 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
             queried_logger: Optional[logging.Logger] = logging.root.manager.loggerDict.get(logger_name, None)
             if queried_logger:
                 if queried_logger.disabled:
-                    emb.description += f'☑️ Logger `{queried_logger.name}` was already disabled.'
+                    emb.description += f'☑️ Журнал `{queried_logger.name}` уже был отключён.'
                 else:
                     queried_logger.disabled = True
-                    emb.description += f'✅ Disabled logger `{queried_logger.name}`.'
+                    emb.description += f'✅ Журнал `{queried_logger.name}` отключён.'
                 emb.colour = Colour.green()
             else:
                 emb.description += f'❌ Журнал `{logger_name}` не найден.'
@@ -333,7 +333,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
                 if reset_level:
                     queried_logger.setLevel(logging.INFO)
-                    emb.description += f'\n\nLogging level set to `{logging.getLevelName(queried_logger.level)}`.'
+                    emb.description += f'\n\nУровень журналирования установлен на `{logging.getLevelName(queried_logger.level)}`.'
 
                 emb.colour = Colour.green()
 
@@ -378,13 +378,13 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
                 else:
                     queried_logger.log(level=level, msg=message)
-                    emb.description += (f'✅ Sent message via `{queried_logger.name}` '
-                                        f'at level `{logging.getLevelName(level)}`.')
+                    emb.description += (f'✅ Сообщение отправлено через `{queried_logger.name}` '
+                                        f'с уровнем `{logging.getLevelName(level)}`.')
                     emb.colour = Colour.green()
 
                     if queried_logger.level > level:
-                        emb.description += (f'\n\n⚠️ Message won\'t appear since the logger level is higher than the '
-                                            f'message level.')
+                        emb.description += (f'\n\n⚠️ Сообщение не появится, поскольку уровень журнала выше уровня '
+                                            f'сообщения.')
                         emb.colour = Colour.orange()
 
             await interaction.followup.send(embed=emb)
@@ -416,17 +416,17 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                         emb.description += f'### `{logger_name1}`\n'
 
                         if logger1:
-                            emb.description += f'''> **Status:** {'Disabled' if logger1.disabled else 'Enabled'}
+                            emb.description += f'''> **Состояние:** {'Отключён' if logger1.disabled else 'Включён'}
 > **Level:** `{logging.getLevelName(logger1.level)}`\n\n'''
                         else:
-                            emb.description += f'❌ Logger not found.\n\n'
+                            emb.description += f'❌ Журнал не найден.\n\n'
 
                 case _:
                     logger1: Optional[logging.Logger] = logging.root.manager.loggerDict.get(logger_name, None)
 
                     if logger1:
                         emb.description += f'### `{logger1.name}`\n'
-                        emb.description += f'''> **Status:** {'Disabled' if logger1.disabled else 'Enabled'}
+                        emb.description += f'''> **Состояние:** {'Отключён' if logger1.disabled else 'Включён'}
 > **Level:** `{logging.getLevelName(logger1.level)}`'''
                     else:
                         emb.description += f'### `{logger_name}`\n'
