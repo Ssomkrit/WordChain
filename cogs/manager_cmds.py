@@ -11,7 +11,7 @@ from discord import Colour, Embed, Interaction, Permissions, Role, TextChannel, 
 from discord.app_commands import Choice, Group
 from discord.ext.commands import Cog
 from sqlalchemy import CursorResult, delete, insert, select
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyОшибка
 
 from consts import COG_NAME_COMMON, COG_NAME_MANAGER_CMDS, LOGGER_NAME_MANAGER_COG, GameMode, \
     RELIABLE_ROLE_KARMA_THRESHOLD, RELIABLE_ROLE_ACCURACY_THRESHOLD, DISCORD_UNKNOWN_MEMBER, DISCORD_UNKNOWN_ROLE, \
@@ -44,7 +44,7 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
             if cog is not None:
                 return cog # noqa
             time.sleep(.2)
-        raise ValueError(f'Cog {COG_NAME_COMMON} not found')
+        raise ValueОшибка(f'Cog {COG_NAME_COMMON} not found')
 
     # ----------------------------------------------------------------------------------------------------------------
 
@@ -71,7 +71,7 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
 
     # ================================================================================================================
 
-    @app_commands.command(name='reset_stats', description='Resets all stats for this server, but keeps the '
+    @app_commands.command(name='reset_stats', description='Сбрасывает всю статистику сервера, сохраняя '
                                                           'configuration')
     @app_commands.default_permissions(manage_guild=True)
     @app_commands.guild_only()
@@ -100,16 +100,16 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
                 await connection.commit()
                 emb: Embed = Embed(title='Success', colour=Colour.green(),
                                    description=f'''Stats have been reset.''')
-            except SQLAlchemyError as e:
+            except SQLAlchemyОшибка as e:
                 logger.error(e)
-                emb: Embed = Embed(title='Error', colour=Colour.red(),
+                emb: Embed = Embed(title='Ошибка', colour=Colour.red(),
                                    description=f'''There was an error. Changes might not have been saved.''')
 
         await interaction.followup.send(embed=emb)
 
     # ----------------------------------------------------------------------------------------------------------------
 
-    @app_commands.command(name='health_check', description='Performs a health check on your server')
+    @app_commands.command(name='health_check', description='Проверяет настройки и права бота на сервере')
     @app_commands.default_permissions(manage_guild=True)
     @app_commands.guild_only()
     async def health_check(self, interaction: Interaction):
@@ -118,7 +118,7 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
         guild = interaction.guild
 
         if guild is None:
-            await interaction.followup.send('Guild not found!')
+            await interaction.followup.send('Сервер не найден!')
             return
 
         items: list[str] = [
@@ -130,7 +130,7 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
         try:
             config = self.common.server_configs[guild.id]
             items.extend(self.common.permission_checks_for_config(config, bot_member))
-        except KeyError:
+        except KeyОшибка:
             items.append('Server config not present!')
 
         await interaction.followup.send('\n'.join(items))
@@ -140,14 +140,14 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
     class SetupCommandsGroup(Group):
 
         def __init__(self, parent_cog: ManagerCommandsCog):
-            super().__init__(name='set', description='Setup commands',
+            super().__init__(name='set', description='Настройки',
                              default_permissions=Permissions(manage_guild=True), guild_only=True)
             self.cog: ManagerCommandsCog = parent_cog
 
         # ------------------------------------------------------------------------------------------------------------
 
         @app_commands.command(name='reliable_role',
-                              description='Sets the role that a user gets upon reaching'
+                              description='Настраивает роль, которую игрок получает при достижении'
                                           f' a karma of {RELIABLE_ROLE_KARMA_THRESHOLD} and'
                                           f' accuracy > {RELIABLE_ROLE_ACCURACY_THRESHOLD:.1%}')
         @app_commands.describe(role='The role to be used')
@@ -162,15 +162,15 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
             bot_member: discord.Member = guild.me
 
             if role.position > bot_member.top_role.position:
-                emb: Embed = Embed(title='Error', colour=Colour.red(),
-                                   description=f'''You cannot set a role that is higher than my top role 
+                emb: Embed = Embed(title='Ошибка', colour=Colour.red(),
+                                   description=f'''Нельзя установить роль выше моей высшей роли 
 ({bot_member.top_role.mention}) in the hierarchy!''')
                 await interaction.followup.send(embed=emb)
                 return
 
             if not bot_member.guild_permissions.manage_roles:
-                emb: Embed = Embed(title='Error', colour=Colour.red(),
-                                   description=f'''I do not have the `Manage Roles` permission!''')
+                emb: Embed = Embed(title='Ошибка', colour=Colour.red(),
+                                   description=f'''У меня нет права `Управление ролями`!''')
                 await interaction.followup.send(embed=emb)
                 return
 
@@ -185,13 +185,13 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
                 await connection.commit()
 
                 emb: Embed = Embed(title='Success', colour=Colour.green(),
-                                   description=f'''Reliable role was set to {role.mention}!''')
+                                   description=f'''Надёжная роль установлена:  {role.mention}!''')
                 await interaction.followup.send(embed=emb)
 
         # ------------------------------------------------------------------------------------------------------------
 
         @app_commands.command(name='failed_role',
-                              description='Sets the role to be used when a user puts a wrong word')
+                              description='Настраивает роль за ошибку игрока')
         @app_commands.describe(role='The role to be used when a user puts a wrong word')
         async def set_failed_role(self, interaction: Interaction, role: Role):
             """Command to set the role to be used when a user fails"""
@@ -204,15 +204,15 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
             bot_member: discord.Member = guild.me
 
             if role.position > bot_member.top_role.position:
-                emb: Embed = Embed(title='Error', colour=Colour.red(),
-                                   description=f'''You cannot set a role that is higher than my top role 
+                emb: Embed = Embed(title='Ошибка', colour=Colour.red(),
+                                   description=f'''Нельзя установить роль выше моей высшей роли 
 ({bot_member.top_role.mention}) in the hierarchy!''')
                 await interaction.followup.send(embed=emb)
                 return
 
             if not bot_member.guild_permissions.manage_roles:
-                emb: Embed = Embed(title='Error', colour=Colour.red(),
-                                   description=f'''I do not have the `Manage Roles` permission!''')
+                emb: Embed = Embed(title='Ошибка', colour=Colour.red(),
+                                   description=f'''У меня нет права `Управление ролями`!''')
                 await interaction.followup.send(embed=emb)
                 return
 
@@ -228,12 +228,12 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
                 await connection.commit()
 
                 emb: Embed = Embed(title='Success', colour=Colour.green(),
-                                   description=f'''Failed role was set to {role.mention}.''')
+                                   description=f'''Роль за ошибку установлена:  {role.mention}.''')
                 await interaction.followup.send(embed=emb)
 
         # ------------------------------------------------------------------------------------------------------------
 
-        @app_commands.command(name='channel', description='Sets the game channel')
+        @app_commands.command(name='channel', description='Настраивает игровой канал')
         @app_commands.describe(channel='The channel where the game will be played')
         @app_commands.describe(game_mode='Configure either for normal mode or for hard mode')
         async def set_channel(self, interaction: Interaction, channel: TextChannel, game_mode: GameMode):
@@ -249,8 +249,8 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
             config = self.cog.common.server_configs[guild.id]
 
             if config.game_state[other_game_mode].channel_id == channel.id:
-                emb: Embed = Embed(title='Error', colour=Colour.red(),
-                                   description=f'''You cannot use a channel for this game mode, that is assigned
+                emb: Embed = Embed(title='Ошибка', colour=Colour.red(),
+                                   description=f'''Нельзя использовать канал для этого режима, который уже назначен
 to the other game mode!''')
             else:
                 config.game_state[game_mode].channel_id = channel.id
@@ -259,7 +259,7 @@ to the other game mode!''')
                     if config.game_state[game_mode].current_word is None else \
                     f'The last valid word was `{config.game_state[game_mode].current_word}`.'
                 emb: Embed = Embed(title='Success', colour=Colour.green(),
-                                   description=f'''Word chain channel for {game_mode.name.lower()} game mode was set to 
+                                   description=f'''Канал цепочки для режима {game_mode.name.lower()} game mode настроен на 
 {channel.mention}. {extra_information}''')
 
             await interaction.followup.send(embed=emb)
@@ -269,11 +269,11 @@ to the other game mode!''')
     class UnsetCommandsGroup(Group):
 
         def __init__(self, parent_cog: ManagerCommandsCog):
-            super().__init__(name='unset', description='Resets settings',
+            super().__init__(name='unset', description='Сбрасывает настройки',
                              default_permissions=Permissions(manage_guild=True), guild_only=True)
             self.cog: ManagerCommandsCog = parent_cog
 
-        @app_commands.command(name='reliable_role', description='Removes the reliable role feature')
+        @app_commands.command(name='reliable_role', description='Отключает надёжную роль')
         async def remove_reliable_role(self, interaction: Interaction):
             await interaction.response.defer()
 
@@ -306,19 +306,19 @@ to the other game mode!''')
                             raise
                 self.cog.common.server_reliable_roles[guild.id] = None
                 emb: Embed = Embed(title='Success', colour=Colour.green(),
-                                   description='Reliable role has been removed.' + (
+                                   description='Надёжная роль отключена.' + (
                                        f' Note: {role.mention} could not be unassigned due to permission errors.'
                                        if cleanup_failed else '')
                                    )
                 await interaction.followup.send(embed=emb)
             else:
-                emb: Embed = Embed(title='Error', colour=Colour.red(),
-                                   description='Reliable role was already unset!')
+                emb: Embed = Embed(title='Ошибка', colour=Colour.red(),
+                                   description='Надёжная роль уже отключена!')
                 await interaction.followup.send(embed=emb)
 
         # ------------------------------------------------------------------------------------------------------------
 
-        @app_commands.command(name='failed_role', description='Removes the failed role feature')
+        @app_commands.command(name='failed_role', description='Отключает роль за ошибку')
         async def remove_failed_role(self, interaction: Interaction):
             await interaction.response.defer()
 
@@ -354,14 +354,14 @@ to the other game mode!''')
                             raise
                 self.cog.common.server_failed_roles[guild.id] = None
                 emb: Embed = Embed(title='Success', colour=Colour.green(),
-                                   description='Failed role has been removed.' + (
+                                   description='Роль за ошибку отключена.' + (
                                        f' Note: {role.mention} could not be unassigned due to permission errors.'
                                        if cleanup_failed else '')
                                    )
                 await interaction.followup.send(embed=emb)
             else:
-                emb: Embed = Embed(title='Error', colour=Colour.red(),
-                                   description='Failed role was already unset!')
+                emb: Embed = Embed(title='Ошибка', colour=Colour.red(),
+                                   description='Роль за ошибку уже отключена!')
                 await interaction.followup.send(embed=emb)
 
     # ================================================================================================================
@@ -369,14 +369,14 @@ to the other game mode!''')
     class BlacklistCmdGroup(app_commands.Group):
 
         def __init__(self, parent_cog: ManagerCommandsCog):
-            super().__init__(name='blacklist', description="Blacklist certain words; the bot won't count them",
+            super().__init__(name='blacklist', description="Добавляет слова в чёрный список",
                              default_permissions=Permissions(manage_guild=True), guild_only=True)
             self.cog: ManagerCommandsCog = parent_cog
 
         # ------------------------------------------------------------------------------------------------------------
 
         # subcommand of Group
-        @app_commands.command(description='Add a word to the blacklist')
+        @app_commands.command(description='Добавить слово в чёрный список')
         @app_commands.describe(word="The word to be added to the blacklist")
         async def add(self, interaction: Interaction, word: str) -> None:
             await interaction.response.defer()
@@ -419,7 +419,7 @@ to the other game mode!''')
                 words = [row[0] for row in result]
                 return [Choice[str](name=word, value=word) for word in words]
 
-        @app_commands.command(description='Remove a word from the blacklist')
+        @app_commands.command(description='Удалить слово из чёрного списка')
         @app_commands.describe(word='The word to be removed from the blacklist')
         @app_commands.autocomplete(word=_autocomplete_remove_from_blacklist)
         async def remove(self, interaction: Interaction, word: str) -> None:
@@ -452,7 +452,7 @@ to the other game mode!''')
 
         # ------------------------------------------------------------------------------------------------------------
 
-        @app_commands.command(description='List the blacklisted words')
+        @app_commands.command(description='Показать чёрный список')
         async def show(self, interaction: Interaction) -> None:
             await interaction.response.defer()
 
@@ -465,7 +465,7 @@ to the other game mode!''')
                 result: CursorResult = await connection.execute(stmt)
                 words = [row[0] for row in result]
 
-                emb = Embed(title=f'Blacklisted words', description='', colour=Colour.dark_orange())
+                emb = Embed(title=f'Чёрный список', description='', colour=Colour.dark_orange())
 
                 if len(words) == 0:
                     emb.description = f'No word has been blacklisted in this server.'
@@ -488,7 +488,7 @@ to the other game mode!''')
         """
 
         def __init__(self, parent_cog: ManagerCommandsCog):
-            super().__init__(name='whitelist', description="Whitelist certain words; these will take "
+            super().__init__(name='whitelist', description="Добавляет слова в белый список "
                                                            "priority over blacklist",
                              default_permissions=Permissions(manage_guild=True), guild_only=True)
             self.cog: ManagerCommandsCog = parent_cog
@@ -496,7 +496,7 @@ to the other game mode!''')
         # ------------------------------------------------------------------------------------------------------------
 
         # subcommand of Group
-        @app_commands.command(description='Add a word to the whitelist')
+        @app_commands.command(description='Добавить слово в белый список')
         @app_commands.describe(word="The word to be added")
         async def add(self, interaction: Interaction, word: str) -> None:
             await interaction.response.defer()
@@ -539,7 +539,7 @@ to the other game mode!''')
                 words = [row[0] for row in result]
                 return [Choice[str](name=word, value=word) for word in words]
 
-        @app_commands.command(description='Remove a word from the whitelist')
+        @app_commands.command(description='Удалить слово из белого списка')
         @app_commands.describe(word='The word to be removed')
         @app_commands.autocomplete(word=_autocomplete_remove_from_whitelist)
         async def remove(self, interaction: Interaction, word: str) -> None:
@@ -572,7 +572,7 @@ to the other game mode!''')
 
         # ------------------------------------------------------------------------------------------------------------
 
-        @app_commands.command(description='List the whitelisted words')
+        @app_commands.command(description='Показать белый список')
         async def show(self, interaction: Interaction) -> None:
             await interaction.response.defer()
 
@@ -585,7 +585,7 @@ to the other game mode!''')
                 result: CursorResult = await connection.execute(stmt)
                 words = [row[0] for row in result]
 
-                emb = Embed(title=f'Whitelisted words', description='', colour=Colour.dark_orange())
+                emb = Embed(title=f'Белый список', description='', colour=Colour.dark_orange())
 
                 if len(words) == 0:
                     emb.description = f'No word has been whitelisted in this server.'
@@ -603,13 +603,13 @@ to the other game mode!''')
     class LanguageCmdGroup(app_commands.Group):
 
         def __init__(self, parent_cog: ManagerCommandsCog) -> None:
-            super().__init__(name='language', description="Change the language of the bot",
+            super().__init__(name='language', description="Настройка языков бота",
                              default_permissions=Permissions(manage_guild=True), guild_only=True)
             self.cog: ManagerCommandsCog = parent_cog
 
         # ------------------------------------------------------------------------------------------------------------
 
-        @app_commands.command(name='show-all', description="Shows all available languages")
+        @app_commands.command(name='show-all', description="Показывает все доступные языки")
         async def show_all(self, interaction: Interaction) -> None:
             await interaction.response.defer(thinking=True)
 
@@ -617,7 +617,7 @@ to the other game mode!''')
             if guild is None:
                 return
 
-            emb: Embed = Embed(colour=Colour.yellow(), title='Languages supported by the bot', description='')
+            emb: Embed = Embed(colour=Colour.yellow(), title='Языки, поддерживаемые ботом', description='')
             await self.cog.common.ensure_config(guild)
             config = self.cog.common.server_configs[guild.id]
             emb.description += f'''The bot supports the following languages:
@@ -639,7 +639,7 @@ to the other game mode!''')
             values = [l.value.code for l in Language if l.value.code.startswith(value.lower()) and l not in already_assigned_languages][:25]
             return [Choice[str](name=v, value=v) for v in values]
 
-        @app_commands.command(name='add', description="Add a new language")
+        @app_commands.command(name='add', description="Добавить язык")
         @app_commands.describe(language_code="The language code")
         @app_commands.autocomplete(language_code=_autocomplete_add_language)
         async def add(self, interaction: Interaction, language_code: str) -> None:
@@ -649,11 +649,11 @@ to the other game mode!''')
             if guild is None:
                 return
 
-            embed: Embed = Embed(title='Add new language', colour=Colour.green())
+            embed: Embed = Embed(title='Добавить язык', colour=Colour.green())
 
             try:
                 language = Language.from_language_code(language_code.lower())
-            except ValueError:
+            except ValueОшибка:
                 embed.description = f'❌ Invalid language code. Please use the codes as stated in `/language show-all`.'
                 embed.colour = Colour.red()
 
@@ -700,7 +700,7 @@ to the other game mode!''')
             values = [l.value.code for l in available_languages if l.value.code.startswith(value.lower())][:25]
             return [Choice[str](name=v, value=v) for v in values]
 
-        @app_commands.command(name='remove', description="Remove a language")
+        @app_commands.command(name='remove', description="Удалить язык")
         @app_commands.describe(language_code="The language code")
         @app_commands.autocomplete(language_code=_autocomplete_remove_language)
         async def remove(self, interaction: Interaction, language_code: str) -> None:
@@ -710,11 +710,11 @@ to the other game mode!''')
             if guild is None:
                 return
 
-            embed: Embed = Embed(title='Remove language')
+            embed: Embed = Embed(title='Удалить язык')
 
             try:
                 language = Language.from_language_code(language_code.lower())
-            except ValueError:
+            except ValueОшибка:
                 embed.description = f'❌ Invalid language code.\nPlease use the codes as stated in `/language show-all`.'
                 embed.colour = Colour.red()
 
