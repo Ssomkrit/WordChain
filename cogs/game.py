@@ -128,16 +128,16 @@ class GameCog(Cog, name=COG_NAME_GAME):
 
         if message.channel.id == config.game_state[GameMode.NORMAL].channel_id:
             if config.game_state[GameMode.NORMAL].current_word:
-                await self.send_message_to_channel(message.channel, f'{message.author.mention} edited their word! '
-                                                                            f'The **last** word was **{config.game_state[GameMode.NORMAL].current_word}**.')
+                await self.send_message_to_channel(message.channel, f'{message.author.mention} изменил своё слово! '
+                                                                            f'Последнее слово: **{config.game_state[GameMode.NORMAL].current_word}**.')
             else:
-                await self.send_message_to_channel(message.channel, f'{message.author.mention} edited their word!')
+                await self.send_message_to_channel(message.channel, f'{message.author.mention} изменил своё слово!')
         elif message.channel.id == config.game_state[GameMode.HARD].channel_id:
             if config.game_state[GameMode.HARD].current_word:
-                await self.send_message_to_channel(message.channel, f'{message.author.mention} edited their word! '
-                                                                            f'The **last** word was **{config.game_state[GameMode.HARD].current_word}**.')
+                await self.send_message_to_channel(message.channel, f'{message.author.mention} изменил своё слово! '
+                                                                            f'Последнее слово: **{config.game_state[GameMode.HARD].current_word}**.')
             else:
-                await self.send_message_to_channel(message.channel, f'{message.author.mention} edited their word!')
+                await self.send_message_to_channel(message.channel, f'{message.author.mention} изменил своё слово!')
 
     # ----------------------------------------------------------------------------------------------------------------
 
@@ -173,16 +173,16 @@ class GameCog(Cog, name=COG_NAME_GAME):
 
         if before.channel.id == config.game_state[GameMode.NORMAL].channel_id:
             if config.game_state[GameMode.NORMAL].current_word:
-                await self.send_message_to_channel(after.channel, f'{after.author.mention} edited their word! '
-                                                                          f'The **last** word was **{config.game_state[GameMode.NORMAL].current_word}**.')
+                await self.send_message_to_channel(after.channel, f'{after.author.mention} изменил своё слово! '
+                                                                          f'Последнее слово: **{config.game_state[GameMode.NORMAL].current_word}**.')
             else:
-                await self.send_message_to_channel(after.channel, f'{after.author.mention} edited their word!')
+                await self.send_message_to_channel(after.channel, f'{after.author.mention} изменил своё слово!')
         elif before.channel.id == config.game_state[GameMode.HARD].channel_id:
             if config.game_state[GameMode.HARD].current_word:
-                await self.send_message_to_channel(after.channel, f'{after.author.mention} edited their word! '
-                                                                          f'The **last** word was **{config.game_state[GameMode.HARD].current_word}**.')
+                await self.send_message_to_channel(after.channel, f'{after.author.mention} изменил своё слово! '
+                                                                          f'Последнее слово: **{config.game_state[GameMode.HARD].current_word}**.')
             else:
-                await self.send_message_to_channel(after.channel, f'{after.author.mention} edited their word!')
+                await self.send_message_to_channel(after.channel, f'{after.author.mention} изменил своё слово!')
 
     # ---------------------------------------------------------------------------------------------------------------
 
@@ -233,8 +233,8 @@ class GameCog(Cog, name=COG_NAME_GAME):
         # --------------------
         if len(word) == 1:
             await self.add_reaction(message, '⚠️')
-            await self.send_message_to_channel(message.channel, f'''Single-letter inputs are no longer accepted.
-The chain has **not** been broken. Please enter another word.''')
+            await self.send_message_to_channel(message.channel, f'''Однобуквенные слова не принимаются.
+Цепочка **не** сломана. Введите другое слово.''')
             return
 
         # --------------------
@@ -244,8 +244,8 @@ The chain has **not** been broken. Please enter another word.''')
             if not any(c.isspace() for c in word):
                 # in this case, we have a single word, that did not match any of the configured language regex patterns
                 await self.add_reaction(message, '⚠️')
-                await self.send_message_to_channel(message.channel, f'''Your word is not a valid word in any of your configured languages.
-The chain has **not** been broken. Please enter another word.''')
+                await self.send_message_to_channel(message.channel, f'''Неверное слово.
+Цепочка **не** сломана. Введите другое слово.''')
             return
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -293,8 +293,8 @@ The chain has **not** been broken. Please enter another word.''')
             # -----------------------------------
             if not word_whitelisted and await self.common.is_word_blacklisted(word, message.guild.id, connection):
                 await self.add_reaction(message, '⚠️')
-                await self.send_message_to_channel(message.channel, f'''This word has been **blacklisted**. Please do not use it.
-The chain has **not** been broken. Please enter another word.''')
+                await self.send_message_to_channel(message.channel, f'''Это слово в чёрном списке.
+Цепочка **не** сломана. Введите другое слово.''')
                 return
 
             # ----------------------------------------
@@ -318,11 +318,11 @@ The chain has **not** been broken. Please enter another word.''')
             # Wrong member
             # -------------
             if not SETTINGS.single_player and config.game_state[game_mode].last_member_id == message.author.id:
-                response: str = f'''{message.author.mention} messed up the count! \
-*You cannot send two words in a row!*
-{f'The chain length was {config.game_state[game_mode].current_count} when it was broken. :sob:\n' if config.game_state[game_mode].current_count > 0 else ''}\
-Restart with a word starting with **{config.game_state[game_mode].current_word[-game_mode.value:]}** and \
-try to beat the current high score of **{config.game_state[game_mode].high_score}**!'''
+                response: str = f'''{message.author.mention} ошибся в цепочке! \
+*Нельзя писать два слова подряд!*
+{f'Цепочка прервана на {config.game_state[game_mode].current_count} словах. 😭\n' if config.game_state[game_mode].current_count > 0 else ''}\
+Начните со слова на **{config.game_state[game_mode].current_word[-game_mode.value:]}** and \
+попробуйте побить рекорд — **{config.game_state[game_mode].high_score}**!'''
 
                 await self.handle_mistake(message, response, connection, game_mode)
                 await connection.commit()
@@ -334,11 +334,11 @@ try to beat the current high score of **{config.game_state[game_mode].high_score
             if (config.game_state[game_mode].current_word and word[:game_mode.value] !=
                             config.game_state[game_mode].current_word.rstrip('йыьъ')[-game_mode.value:]):
 
-                response: str = f'''{message.author.mention} messed up the chain! \
-*The word you entered did not begin with the last letter of the previous word* (**{config.game_state[game_mode].current_word.rstrip('йыьъ')[-game_mode.value:]}**).
-{f'The chain length was {config.game_state[game_mode].current_count} when it was broken. :sob:\n' if config.game_state[game_mode].current_count > 0 else ''}\
-Restart with a word starting with **{config.game_state[game_mode].current_word.rstrip('йыьъ')[-game_mode.value:]}** and try to beat the \
-current high score of **{config.game_state[game_mode].high_score}**!'''
+                response: str = f'''{message.author.mention} ошибся в цепочке! \
+*Слово должно начинаться с последней буквы предыдущего слова* (**{config.game_state[game_mode].current_word.rstrip('йыьъ')[-game_mode.value:]}**).
+{f'Цепочка прервана на {config.game_state[game_mode].current_count} словах. 😭\n' if config.game_state[game_mode].current_count > 0 else ''}\
+Начните со слова на **{config.game_state[game_mode].current_word.rstrip('йыьъ')[-game_mode.value:]}** and try to beat the \
+рекорд — **{config.game_state[game_mode].high_score}**!'''
 
                 await self.handle_mistake(message, response, connection, game_mode)
                 await connection.commit()
@@ -372,19 +372,18 @@ current high score of **{config.game_state[game_mode].high_score}**!'''
 
                 if query_result_code == self.common.API_RESPONSE_WORD_DOESNT_EXIST:
                     if config.game_state[game_mode].current_word:
-                        response: str = f'''{message.author.mention} messed up the chain! \
-*The word you entered does not exist.^*
-{f'The chain length was {config.game_state[game_mode].current_count} when it was broken. :sob:\n' if config.game_state[game_mode].current_count > 0 else ''}\
-Restart with a word starting with **{config.game_state[game_mode].current_word[-game_mode.value:]}** and try to beat the \
-current high score of **{config.game_state[game_mode].high_score}**!
+                        response: str = f'''{message.author.mention} ошибся в цепочке! \
+*Введённого слова не существует.^*
+{f'Цепочка прервана на {config.game_state[game_mode].current_count} словах. 😭\n' if config.game_state[game_mode].current_count > 0 else ''}\
+Начните со слова на **{config.game_state[game_mode].current_word[-game_mode.value:]}** and try to beat the \
+рекорд — **{config.game_state[game_mode].high_score}**!
 
--# ^ The bot now supports multiple languages. When a word is invalid, it pertains to the language(s) \
-enabled in this server.\n-# To check enabled languages, use `/show_languages`.'''
+-# ^ Если слово недействительно, проверка выполняется с учётом языков, включённых на этом сервере.\n-# Чтобы посмотреть включённые языки, используйте `/show_languages`.'''
 
                     else:
-                        response: str = f'''{message.author.mention} messed up the chain! \
-*The word you entered does not exist.*
-Restart and try to beat the current high score of **{config.game_state[game_mode].high_score}**!'''
+                        response: str = f'''{message.author.mention} ошибся в цепочке! \
+*Введённого слова не существует.*
+Restart and попробуйте побить рекорд — **{config.game_state[game_mode].high_score}**!'''
 
                     await self.handle_mistake(message, response, connection, game_mode)
                     await connection.commit()
@@ -392,8 +391,8 @@ Restart and try to beat the current high score of **{config.game_state[game_mode
 
                 elif query_result_code == self.common.API_RESPONSE_ERROR:
                     await self.add_reaction(message, '⚠️')
-                    await self.send_message_to_channel(message.channel, ''':octagonal_sign: There was an issue in the backend.
-The above entered word is **NOT** being taken into account.''')
+                    await self.send_message_to_channel(message.channel, ''':octagonal_sign: Произошла ошибка на сервере.
+Введённое слово **не засчитано**.''')
                     return
 
             # -----------------------------------
@@ -409,9 +408,9 @@ The above entered word is **NOT** being taken into account.''')
             word_already_used = result.scalar()
             if word_already_used:
                 await self.add_reaction(message, '⚠️')
-                await self.send_message_to_channel(message.channel, f'''The word *{word}* has already been used before. \
-The chain has **not** been broken.
-Please enter another word.''')
+                await self.send_message_to_channel(message.channel, f'''Слово *{word}* уже использовалось. \
+Цепочка **не** сломана.
+Введите другое слово.''')
                 return
 
             # --------------------
@@ -419,9 +418,9 @@ Please enter another word.''')
             # --------------------
             if all(language.value.score_threshold[game_mode] > self.calculate_word_score(word, game_mode, language) for language in server_languages):
                 await self.add_reaction(message, '⚠️')
-                await self.send_message_to_channel(message.channel, f'''Your word has no or just few words to continue with.
-The chain has **not** been broken. Please enter another word.\n
--# If you think this is wrong, please let us know on our support server.''')
+                await self.send_message_to_channel(message.channel, f'''У этого слова мало вариантов продолжения.
+Цепочка **не** сломана. Введите другое слово.\n
+-# Если считаете это ошибкой, сообщите нам на сервере поддержки.''')
                 return
 
             # --------------------
@@ -460,7 +459,7 @@ The chain has **not** been broken. Please enter another word.\n
             current_count = config.game_state[game_mode].current_count
 
             if current_count > 0 and current_count % 100 == 0:
-                await self.send_message_to_channel(message.channel, f'{current_count} words! Nice work, keep it up!')
+                await self.send_message_to_channel(message.channel, f'{current_count} слов! Отлично, так держать!')
 
             # Check and reset the server config.failed_member_id to None.
             if self.common.server_failed_roles[server_id] and config.failed_member_id == message.author.id:
