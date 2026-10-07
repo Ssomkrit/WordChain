@@ -70,7 +70,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
     @app_commands.default_permissions(administrator=True)
     @app_commands.guilds(SETTINGS.admin_guild_id)
     @app_commands.guild_only()
-    @app_commands.describe(guild_id='ID of the server to check')
+    @app_commands.describe(guild_id='ID сервера для проверки')
     async def health_check(self, interaction: Interaction, guild_id: str):
 
         await interaction.response.defer()
@@ -99,7 +99,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
         try:
             cache_config = self.common.server_configs[guild_id_as_number]
         except KeyError:
-            items.append('Server config not present in cache!\n')
+            items.append('Конфигурация сервера отсутствует в кэше!\n')
 
         async with self.bot.db_connection() as connection:
             stmt = select(ServerConfigModel).where(
@@ -108,7 +108,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
             result: CursorResult = await connection.execute(stmt)
             configs = [ServerConfig.from_sqlalchemy_row(row) for row in result]
             if len(configs) == 0:
-                items.append('Server config not present in database!\n')
+                items.append('Конфигурация сервера отсутствует в базе данных!\n')
             else:
                 db_config = configs[0]
 
@@ -119,7 +119,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                 if cache_config.model_dump()[k] != db_config.model_dump()[k]
             }
             if len(diff) > 0:
-                items.append(f'Differences in cache and database configs: {diff}\n')
+                items.append(f'Различия между конфигурациями в кэше и базе данных: {diff}\n')
 
 
         bot_member = guild.get_member(self.bot.user.id)
@@ -159,8 +159,8 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
         # -----------------------------------------------------------------------------------------------------------
 
         @app_commands.command(name='set_level', description='Настроить уровень журнала')
-        @app_commands.describe(level='The logging level to be set',
-                               logger_name='The logger for which the level has to be set')
+        @app_commands.describe(level='Уровень журналирования',
+                               logger_name='Журнал, для которого устанавливается уровень')
         @app_commands.choices(level=[
             app_commands.Choice(name='Отладка', value=logging.DEBUG),
             app_commands.Choice(name='Информация', value=logging.INFO),
@@ -175,7 +175,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
             app_commands.Choice(name='Команды пользователя', value=LOGGER_NAME_USER_COG),
             app_commands.Choice(name='Игра', value=LOGGER_NAME_GAME_COG),
             app_commands.Choice(name='Общие', value=LOGGER_NAME_COMMON_COG),
-            app_commands.Choice(name='All', value='all')
+            app_commands.Choice(name='Все', value='all')
         ])
         async def set_log_level(self, interaction: Interaction, logger_name: str, level: int):
 
@@ -190,7 +190,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                         queried_logger: Optional[Logger] = logging.root.manager.loggerDict.get(logger_name1, None)
 
                         if not queried_logger:
-                            emb.description += f'❌ Logger not found.\n'
+                            emb.description += f'❌ Журнал не найден.\n'
                             continue
 
                         emb.description += f'### `{logger_name1}`\n'
@@ -199,7 +199,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                         emb.description += f'✅ Level set to `{logging.getLevelName(level)}`.\n'
 
                         if queried_logger.disabled:
-                            emb.description += f'⚠️ Logger is disabled!\n\n'
+                            emb.description += f'⚠️ Журнал отключён!\n\n'
                 case _:
                     # Retrieve the existing logger; do NOT create a new logger
                     queried_logger: Optional[logging.Logger] = logging.root.manager.loggerDict.get(logger_name, None)
@@ -210,9 +210,9 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                         emb.description += f'✅ Level set to `{logging.getLevelName(level)}`.'
 
                         if queried_logger.disabled:
-                            emb.description += f'\n\n⚠️ Logger is disabled!'
+                            emb.description += f'\n\n⚠️ Журнал отключён!'
                     else:
-                        emb.description += f'❌ Logger not found.'
+                        emb.description += f'❌ Журнал не найден.'
 
             await interaction.followup.send(embed=emb)
 
@@ -230,10 +230,10 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                 queried_logger: Optional[logging.Logger] = logging.root.manager.loggerDict.get(logger_name, None)
                 if queried_logger:
                     if queried_logger.disabled:
-                        emb.description += f'☑️ Logger `{queried_logger.name}` was already disabled.\n'
+                        emb.description += f'☑️ Журнал `{queried_logger.name}` уже был отключён.\n'
                     else:
                         queried_logger.disabled = True
-                        emb.description += f'✅ Disabled logger `{queried_logger.name}`.\n'
+                        emb.description += f'✅ Журнал `{queried_logger.name}` отключён.\n'
                 else:
                     emb.description += f'❌ Logger `{logger_name}` not found.\n'
 
@@ -242,7 +242,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
         # -----------------------------------------------------------------------------------------------------------
 
         @app_commands.command(name='enable_all', description='Включить все журналы')
-        @app_commands.describe(reset_level='Whether to reset the levels of loggers to INFO')
+        @app_commands.describe(reset_level='Сбросить уровни журналов до INFO')
         async def enable_all(self, interaction: Interaction, reset_level: bool = True):
 
             await interaction.response.defer()
@@ -257,23 +257,23 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                 queried_logger: Optional[logging.Logger] = logging.root.manager.loggerDict.get(logger_name, None)
                 if queried_logger:
                     if not queried_logger.disabled:
-                        emb.description += f'☑️ Logger `{queried_logger.name}` was already enabled.\n'
+                        emb.description += f'☑️ Журнал `{queried_logger.name}` уже был включён.\n'
                     else:
                         queried_logger.disabled = False
-                        emb.description += f'✅ Enabled logger `{queried_logger.name}`.\n'
+                        emb.description += f'✅ Журнал `{queried_logger.name}` включён.\n'
 
                     if reset_level:
                         queried_logger.setLevel(logging.INFO)
                         emb.description += f'Log level set to `INFO`.\n\n'
                 else:
-                    emb.description += f'❌ Logger `{logger_name}` not found.\n\n'
+                    emb.description += f'❌ Журнал `{logger_name}` не найден.\n\n'
 
             await interaction.followup.send(embed=emb)
 
         # -----------------------------------------------------------------------------------------------------------
 
         @app_commands.command(name='disable_logger', description='Отключить выбранный журнал')
-        @app_commands.describe(logger_name='The logger for which the level has to be set')
+        @app_commands.describe(logger_name='Журнал, для которого устанавливается уровень')
         @app_commands.choices(logger_name=[
             app_commands.Choice(name='Основной', value=LOGGER_NAME_MAIN),
             app_commands.Choice(name='Команды администратора', value=LOGGER_NAME_ADMIN_COG),
@@ -296,7 +296,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                     emb.description += f'✅ Disabled logger `{queried_logger.name}`.'
                 emb.colour = Colour.green()
             else:
-                emb.description += f'❌ Logger `{logger_name}` not found.'
+                emb.description += f'❌ Журнал `{logger_name}` не найден.'
                 emb.colour = Colour.red()
 
             await interaction.followup.send(embed=emb)
@@ -305,8 +305,8 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
         @app_commands.command(name='enable_logger',
                               description='Включает выбранный журнал и устанавливает уровень INFO')
-        @app_commands.describe(logger_name='The logger for which the level has to be set',
-                               reset_level='Whether the level should be explicitly reset to INFO')
+        @app_commands.describe(logger_name='Журнал, для которого устанавливается уровень',
+                               reset_level='Явно сбросить уровень до INFO')
         @app_commands.choices(logger_name=[
             app_commands.Choice(name='Основной', value=LOGGER_NAME_MAIN),
             app_commands.Choice(name='Команды администратора', value=LOGGER_NAME_ADMIN_COG),
@@ -322,14 +322,14 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
             queried_logger: Optional[logging.Logger] = logging.root.manager.loggerDict.get(logger_name, None)
             if not queried_logger:
-                emb.description += f'❌ Logger `{logger_name}` not found.'
+                emb.description += f'❌ Журнал `{logger_name}` не найден.'
                 emb.colour = Colour.red()
             else:
                 if not queried_logger.disabled:
-                    emb.description += f'☑️ Logger `{queried_logger.name}` was already enabled.'
+                    emb.description += f'☑️ Журнал `{queried_logger.name}` уже был включён.'
                 else:
                     queried_logger.disabled = False
-                    emb.description += f'✅ Enabled logger `{queried_logger.name}`'
+                    emb.description += f'✅ Журнал `{queried_logger.name}` включён.'
 
                 if reset_level:
                     queried_logger.setLevel(logging.INFO)
@@ -343,9 +343,9 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
         @app_commands.command(name='test',
                               description='Проверяет выбранный журнал')
-        @app_commands.describe(logger_name='The logger for which the level has to be set',
-                               level='The logging level via which the message will be sent',
-                               message='The message to be logged')
+        @app_commands.describe(logger_name='Журнал, для которого устанавливается уровень',
+                               level='Уровень журналирования, с которым будет отправлено сообщение',
+                               message='Сообщение для журналирования')
         @app_commands.choices(logger_name=[
             app_commands.Choice(name='Основной', value=LOGGER_NAME_MAIN),
             app_commands.Choice(name='Команды администратора', value=LOGGER_NAME_ADMIN_COG),
@@ -369,11 +369,11 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
             queried_logger: Optional[logging.Logger] = logging.root.manager.loggerDict.get(logger_name, None)
             if not queried_logger:
-                emb.description += f'❌ Logger `{logger_name}` not found.'
+                emb.description += f'❌ Журнал `{logger_name}` не найден.'
                 emb.colour = Colour.red()
             else:
                 if queried_logger.disabled:
-                    emb.description += f'❌ Logger `{queried_logger.name}` is disabled.'
+                    emb.description += f'❌ Журнал `{queried_logger.name}` отключён.'
                     emb.colour = Colour.red()
 
                 else:
@@ -393,7 +393,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
         @app_commands.command(name='status',
                               description='Состояние выбранного/всех журналов')
-        @app_commands.describe(logger_name='The logger for which you want to view the status')
+        @app_commands.describe(logger_name='Журнал, состояние которого нужно посмотреть')
         @app_commands.choices(logger_name=[
             app_commands.Choice(name='Основной', value=LOGGER_NAME_MAIN),
             app_commands.Choice(name='Команды администратора', value=LOGGER_NAME_ADMIN_COG),
@@ -401,7 +401,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
             app_commands.Choice(name='Команды пользователя', value=LOGGER_NAME_USER_COG),
             app_commands.Choice(name='Игра', value=LOGGER_NAME_GAME_COG),
             app_commands.Choice(name='Общие', value=LOGGER_NAME_COMMON_COG),
-            app_commands.Choice(name='All', value='all')
+            app_commands.Choice(name='Все', value='all')
         ])
         async def logger_status(self, interaction: Interaction, logger_name: str = 'all'):
 
@@ -430,7 +430,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 > **Level:** `{logging.getLevelName(logger1.level)}`'''
                     else:
                         emb.description += f'### `{logger_name}`\n'
-                        emb.description += f'❌ Logger not found.'
+                        emb.description += f'❌ Журнал не найден.'
 
             emb.colour = Colour.green()
             await interaction.followup.send(embed=emb)
@@ -448,7 +448,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
         # -----------------------------------------------------------------------------------------------------------
 
         @app_commands.command(name='server', description='Удаляет все настройки указанного сервера.')
-        @app_commands.describe(guild_id='ID of the guild to be removed from the DB')
+        @app_commands.describe(guild_id='ID сервера, данные которого нужно удалить из базы данных')
         async def clean_server(self, interaction: Interaction, guild_id: str):
 
             await interaction.response.defer()
@@ -506,7 +506,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
         # ---------------------------------------------------------------------------------------------------------------
 
         @app_commands.command(name='user', description='Удаляет все сохранённые данные указанного игрока.')
-        @app_commands.describe(user_id='ID of the user to be removed from the DB')
+        @app_commands.describe(user_id='ID игрока, данные которого нужно удалить из базы данных')
         async def clean_user(self, interaction: Interaction, user_id: str):
 
             await interaction.response.defer()
@@ -526,7 +526,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                 rows_deleted: int = result.rowcount
                 if rows_deleted > 0:
                     await interaction.followup.send(
-                        f'Removed data for user {user_id_as_number} in {rows_deleted} servers')
+                        f'Удалены данные игрока {user_id_as_number} на серверах: {rows_deleted}')
                 else:
                     await interaction.followup.send(f'Нет данных для удаления у игрока: {user_id_as_number}')
 
@@ -543,8 +543,8 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
         # -----------------------------------------------------------------------------------------------------------
 
         @app_commands.command(name='ban', description='Управляет блокировкой сервера в рейтингах')
-        @app_commands.describe(guild_id='ID of the guild to be banned from leaderboards')
-        @app_commands.describe(ban='true to ban the guild, false to unban the guild')
+        @app_commands.describe(guild_id='ID сервера, который нужно заблокировать в рейтингах')
+        @app_commands.describe(ban='true — заблокировать сервер, false — разблокировать сервер')
         async def ban(self, interaction: Interaction, guild_id: str, ban: bool = True):
 
             await interaction.response.defer()
@@ -565,11 +565,11 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
                     if rows_updated > 0:
                         v = 'Заблокирован' if ban else 'Разблокирован'
-                        await interaction.followup.send(f'{v} server with ID {guild_id_as_number}')
+                        await interaction.followup.send(f'{v} сервер с ID {guild_id_as_number}')
                     else:
-                        await interaction.followup.send(f'No changes for server with ID {guild_id_as_number}')
+                        await interaction.followup.send(f'Изменений для сервера с ID {guild_id_as_number} нет')
                 else:
-                    await interaction.followup.send(f'No server found with ID {guild_id_as_number}')
+                    await interaction.followup.send(f'Сервер с ID {guild_id_as_number} не найден')
 
         # -----------------------------------------------------------------------------------------------------------
 
@@ -620,32 +620,32 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                             count_sent += 1
                         except Forbidden as _:
                             logger.error(
-                                f'Failed to send announcement to {guild.name} (ID: {guild.id}) due to missing perms.')
+                                f'Не удалось отправить объявление на сервер {guild.name} (ID: {guild.id}) из-за отсутствия необходимых прав.')
                             count_failed += 1
 
             emb2: Embed = Embed(title='Статус объявления', colour=Colour.green(), description='Команда выполнена.')
-            emb2.add_field(name='Готово', value=f'{count_sent} servers', inline=True)
-            emb2.add_field(name='Failed', value=f'{count_failed} servers', inline=True)
+            emb2.add_field(name='Готово', value=f'{count_sent} серверов', inline=True)
+            emb2.add_field(name='Не удалось', value=f'{count_failed} серверов', inline=True)
 
             return emb2
 
         # -----------------------------------------------------------------------------------------------------------
 
         @app_commands.command(name='message', description='Отправить объявление')
-        @app_commands.describe(msg='The message to announce')
+        @app_commands.describe(msg='Текст объявления')
         async def message(self, interaction: Interaction, msg: str):
             await interaction.response.defer(thinking=True)
 
             emb: Embed = Embed(title='Объявление от разработчиков', description=msg, colour=Colour.red())
             emb.description += f'''
-\n*For support and updates, join our Discord server:\nhttps://discord.gg/yhbzVGBNw3*'''
+\n*Для поддержки и получения новостей присоединяйтесь к нашему серверу Discord:\nhttps://discord.gg/yhbzVGBNw3*'''
 
             await interaction.followup.send(embed=await self.__send_announcement(emb))
 
         # -----------------------------------------------------------------------------------------------------------
 
-        @app_commands.command(name='from_json', description='Отправить объявление from given JSON')
-        @app_commands.describe(json_str='The JSON string from which the embed will be created')
+        @app_commands.command(name='from_json', description='Отправить объявление из указанного JSON')
+        @app_commands.describe(json_str='Строка JSON, из которой будет создано сообщение')
         async def from_json(self, interaction: Interaction, json_str: str):
             await interaction.response.defer(thinking=True)
 
@@ -670,7 +670,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
         @app_commands.command(name='server',
                               description='Сбрасывает данные сервера и создаёт настройки заново')
-        @app_commands.describe(guild_id='ID of the guild to be reset in the DB')
+        @app_commands.describe(guild_id='ID сервера, данные которого нужно сбросить в базе данных')
         async def reset_server(self, interaction: Interaction, guild_id: str):
 
             await interaction.response.defer()
@@ -741,9 +741,9 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                 await connection.commit()
 
                 if total_rows_changed > 0:
-                    await interaction.followup.send(f'Reset data for server {guild_id_as_number}')
+                    await interaction.followup.send(f'Данные сервера сброшены: {guild_id_as_number}')
                 else:
-                    await interaction.followup.send(f'No data to reset for server {guild_id_as_number}')
+                    await interaction.followup.send(f'Нет данных для сброса у сервера: {guild_id_as_number}')
 
     # =============================================================================================================
 
@@ -758,8 +758,8 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
         # -----------------------------------------------------------------------------------------------------------
 
         @app_commands.command(name='ban', description='Блокирует игрока с указанным ID')
-        @app_commands.describe(member_id='ID of the member to be banned from playing')
-        @app_commands.describe(ban='true to ban the member, false to unban the member')
+        @app_commands.describe(member_id='ID игрока, которого нужно заблокировать в игре')
+        @app_commands.describe(ban='true — заблокировать игрока, false — разблокировать игрока')
         async def ban(self, interaction: Interaction, member_id: str, ban: bool = True):
 
             await interaction.response.defer()
@@ -788,7 +788,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                 rows_updated: int = result.rowcount
                 if rows_updated > 0:
                     await interaction.followup.send(
-                        f'{'Заблокирован' if ban else 'Разблокирован'} member with ID {member_id_as_number}')
+                        f'{'Заблокирован' if ban else 'Разблокирован'} игрок с ID {member_id_as_number}')
                 else:
                     await interaction.followup.send(f'Игрок с ID не найден: {member_id_as_number}')
 
