@@ -436,13 +436,25 @@ class CommonCog(Cog, name=COG_NAME_COMMON):
             if not parsed:
                 return False
 
-            parse = parsed[0]
+                    valid_parse = next(
+            (
+                parse
+                for parse in parsed
+                if parse.normal_form == word.lower()
+                and (
+                    parse.tag.POS == "INFN"
+                    or ("nomn" in parse.tag and "sing" in parse.tag)
+                )
+                and not any(
+                    tag in parse.tag
+                    for tag in ("Name", "Surn", "Patr", "Geox", "Abbr", "Orgn")
+                )
+            ),
+            None,
+        )
 
-            if any(tag in parse.tag for tag in ("Name", "Surn", "Patr", "Geox", "Abbr", "Orgn")):
-                return False
-
-            if parse.tag.POS != "INFN" and ("nomn" not in parse.tag or "sing" not in parse.tag):
-                return False
+        if valid_parse is None:
+            return False
           
         return True if re.search(language_info.allowed_word_regex, word.lower()) else False
 
