@@ -3,7 +3,7 @@ import contextlib
 import json
 import logging
 import sys
-from json import JSONDecodeError
+from json import JSONDecodeОшибка
 from logging.config import fileConfig
 from typing import Any, AsyncIterator
 
@@ -11,7 +11,7 @@ import discord
 from alembic import command as alembic_command
 from alembic.config import Config as AlembicConfig
 from discord import Colour, Embed, Interaction, Object, app_commands
-from discord.ext.commands import AutoShardedBot, ExtensionError, ExtensionNotLoaded
+from discord.ext.commands import AutoShardedBot, ExtensionОшибка, ExtensionNotLoaded
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, create_async_engine
 
 from consts import (COG_NAME_ADMIN_CMDS, COG_NAME_COMMON, COG_NAME_GAME, COG_NAME_MANAGER_CMDS, COG_NAME_USER_CMDS,
@@ -23,8 +23,8 @@ logger = logging.getLogger(LOGGER_NAME_MAIN)
 
 
 class WordChainCommandTree(app_commands.CommandTree):
-    async def on_error(self, interaction: Interaction, error: app_commands.AppCommandError, /) -> None:
-        original = getattr(error, 'original', error)  # unwrap CommandInvokeError
+    async def on_error(self, interaction: Interaction, error: app_commands.AppCommandОшибка, /) -> None:
+        original = getattr(error, 'original', error)  # unwrap CommandInvokeОшибка
         command = interaction.command.qualified_name if interaction.command else 'unknown'
         logger.error(
             f'Unhandled {type(original).__name__} in /{command} '
@@ -33,8 +33,8 @@ class WordChainCommandTree(app_commands.CommandTree):
             exc_info=original,
         )
 
-        error_embed = Embed(title='Error', colour=Colour.red(),
-                            description='Something went wrong.')
+        error_embed = Embed(title='Ошибка', colour=Colour.red(),
+                            description='Что-то пошло не так.')
         try:
             if interaction.response.is_done():
                 await interaction.followup.send(embed=error_embed, ephemeral=True)
@@ -145,7 +145,7 @@ def load_command_signature() -> dict:
     try:
         with open(SETTINGS.command_signature_file,'r') as f:
             signature = json.load(f)
-    except (JSONDecodeError, FileNotFoundError):
+    except (JSONDecodeОшибка, FileNotFoundОшибка):
         logger.error('Failed to load existing command signature')
         signature = {
             'global_commands': [],
@@ -164,7 +164,7 @@ def store_command_signature(global_commands: list[dict[str, Any]], admin_command
         logger.info('Dumped latest command signature')
 
 
-@word_chain_bot.tree.command(name='reload', description='Unload and reload a cog')
+@word_chain_bot.tree.command(name='reload', description='Выгрузить и перезагрузить модуль')
 @app_commands.guilds(SETTINGS.admin_guild_id)
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
@@ -194,7 +194,7 @@ async def reload(interaction: Interaction, cog_name: str, force_sync: bool = Fal
                         logger.info(f'Extension {cog_name} not loaded.')
 
                     await word_chain_bot.load_extension(f'cogs.{cog_name}')  # Then reload the
-                except ExtensionError as e:
+                except ExtensionОшибка as e:
                     logger.exception(f'Failed to load extension {cog_name}', e)
                     cogs_failed.append(cog_name)
         case _:
@@ -205,7 +205,7 @@ async def reload(interaction: Interaction, cog_name: str, force_sync: bool = Fal
                     logger.info(f'Extension {cog_name} not loaded.')
 
                 await word_chain_bot.load_extension(f'cogs.{cog_name}')
-            except ExtensionError as e:
+            except ExtensionОшибка as e:
                 logger.exception(f'Failed to load extension {cog_name}', e)
                 cogs_failed.append(cog_name)
 
@@ -213,7 +213,7 @@ async def reload(interaction: Interaction, cog_name: str, force_sync: bool = Fal
     global_payload = [command.to_dict(word_chain_bot.tree) for command in word_chain_bot.tree.get_commands()]
     admin_payload = [command.to_dict(word_chain_bot.tree) for command in word_chain_bot.tree.get_commands(guild=admin_guild)]
 
-    emb: Embed = Embed(title=f'Sync status', description=f'Synchronization complete.', colour=Colour.dark_magenta())
+    emb: Embed = Embed(title=f'Статус синхронизации', description=f'Синхронизация завершена.', colour=Colour.dark_magenta())
 
     global_sync: list[app_commands.AppCommand] | None
     admin_sync: list[app_commands.AppCommand] | None
