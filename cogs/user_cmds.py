@@ -391,14 +391,14 @@ Therefore, a word that is valid in this server may not be valid in another serve
 Вы не теряете карму, если:
 - начинаете слово с частой буквы — первую букву выбирает предыдущий игрок.
 
-Если ошиблись: теряете ${MISTAKE_PENALTY} очков кармы.
+Если ошиблись: теряете {MISTAKE_PENALTY} очков кармы.
 
 :point_right: Карма не может быть меньше 0.
 :point_right: Проверить карму: /stats user.
 :point_right: Рейтинг по карме: /leaderboard user metric:karma.
 '''
             if config and config.reliable_role_id:
-                description += f''':point_right: Чтобы получить <@&${config.reliable_role_id}>, нужно иметь карму > ${RELIABLE_ROLE_KARMA_THRESHOLD} и точность > ${RELIABLE_ROLE_ACCURACY_THRESHOLD:.1%}.
+                description += f''':point_right: Чтобы получить <@&{config.reliable_role_id}>, нужно иметь карму > {RELIABLE_ROLE_KARMA_THRESHOLD} и точность > {RELIABLE_ROLE_ACCURACY_THRESHOLD:.1%}.
 '''
             return Embed(title='Система кармы', description=description, colour=Colour.green())
         # ------------------------------------------------------------------------------------------------------------
