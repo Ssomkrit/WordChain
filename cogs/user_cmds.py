@@ -16,13 +16,13 @@ from sqlalchemy.sql.functions import count
 
 from cogs.common import WordStatus
 from consts import (COG_NAME_COMMON, COG_NAME_USER_CMDS, LOGGER_NAME_USER_COG, MISTAKE_PENALTY,
-                    RELIABLE_ROLE_ACCURACY_THRESHOLD, RELIABLE_ROLE_KARMA_THRESHOLD, SETTINGS, ИграMode)
+                    RELIABLE_ROLE_ACCURACY_THRESHOLD, RELIABLE_ROLE_KARMA_THRESHOLD, SETTINGS, GameMode)
 from language import Language
-from model import ЗаблокированMemberModel, Member, MemberModel, ServerConfig, ServerConfigModel
+from model import BannedMemberModel, Member, MemberModel, ServerConfig, ServerConfigModel
 from views.dropdown import Dropdown
 
 if TYPE_CHECKING:
-    from cogs.common import ОбщиеCog
+    from cogs.common import CommonCog
     from main import WordChainBot
 
 fileConfig(fname='config.ini')
@@ -37,7 +37,7 @@ class UserCommandsCog(Cog, name=COG_NAME_USER_CMDS):
         self.bot.tree.add_command(UserCommandsCog.LeaderboardCmdGroup(self))
 
     @property
-    def common(self) -> ОбщиеCog:
+    def common(self) -> CommonCog:
         for _ in range(5):
             if (cog := self.bot.get_cog(COG_NAME_COMMON)) is not None:
                 return cog # noqa
@@ -557,14 +557,14 @@ https://github.com/WrichikBasu/word_chain_bot_indently/blob/main/PRIVACY_POLICY.
                     case 'server':
                         stmt = (select(MemberModel.member_id, field)
                                 .where(MemberModel.server_id == guild.id)
-                                .where(~MemberModel.member_id.in_(select(ЗаблокированMemberModel.member_id)))
+                                .where(~MemberModel.member_id.in_(select(BannedMemberModel.member_id)))
                                 .where(field > 0)
                                 .order_by(field.desc())
                                 .limit(limit))
                     case 'global':
                         stmt = (select(MemberModel.member_id, func.sum(field))
                                 .group_by(MemberModel.member_id)
-                                .where(~MemberModel.member_id.in_(select(ЗаблокированMemberModel.member_id)))
+                                .where(~MemberModel.member_id.in_(select(BannedMemberModel.member_id)))
                                 .where(field > 0)
                                 .order_by(func.sum(field).desc())
                                 .limit(limit))
@@ -600,7 +600,7 @@ https://github.com/WrichikBasu/word_chain_bot_indently/blob/main/PRIVACY_POLICY.
         # ---------------------------------------------------------------------------------------------------------------
 
         @app_commands.command(description='Показывает 10 серверов с наибольшим рекордом')
-        async def server(self, interaction: Interaction, game_mode: ИграMode = ИграMode.NORMAL):
+        async def server(self, interaction: Interaction, game_mode: GameMode = GameMode.NORMAL):
             """Command to show the top 10 servers with the highest highscore"""
             await interaction.response.defer()
 
@@ -612,10 +612,10 @@ https://github.com/WrichikBasu/word_chain_bot_indently/blob/main/PRIVACY_POLICY.
                 limit = 10
 
                 match game_mode:
-                    case ИграMode.NORMAL:
+                    case GameMode.NORMAL:
                         high_score_column = ServerConfigModel.high_score
                         game_mode_name = 'Обычный режим'
-                    case ИграMode.HARD:
+                    case GameMode.HARD:
                         high_score_column = ServerConfigModel.hard_mode_high_score
                         game_mode_name = 'Сложный режим'
 
@@ -659,7 +659,7 @@ https://github.com/WrichikBasu/word_chain_bot_indently/blob/main/PRIVACY_POLICY.
         # ---------------------------------------------------------------------------------------------------------------
 
         @app_commands.command(description='Показывает статистику игры в слова на сервере')
-        async def server(self, interaction: Interaction, game_mode: ИграMode = ИграMode.NORMAL) -> None:
+        async def server(self, interaction: Interaction, game_mode: GameMode = GameMode.NORMAL) -> None:
             """Command to show the stats of the server"""
             await interaction.response.defer()
 
@@ -675,7 +675,7 @@ https://github.com/WrichikBasu/word_chain_bot_indently/blob/main/PRIVACY_POLICY.
                 return
 
             server_stats_embed = Embed(
-                description=f'''Режим: {'Обычный' if game_mode == ИграMode.NORMAL else 'Сложный'}
+                description=f'''Режим: {'Обычный' if game_mode == GameMode.NORMAL else 'Сложный'}
 Длина цепочки: {config.game_state[game_mode].current_count}
 Рекорд цепочки: {config.game_state[game_mode].high_score}
 {f"**Последнее слово:** {config.game_state[game_mode].current_word}" if config.game_state[game_mode].current_word else ""}
