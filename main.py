@@ -241,8 +241,8 @@ async def reload(interaction: Interaction, cog_name: str, force_sync: bool = Fal
         if global_changed or admin_changed:
             store_command_signature(global_payload, admin_payload)
 
-    emb.add_field(name="Глобальные команды", value=f"{len(global_sync)}" if global_sync else "SKIPPED")
-    emb.add_field(name="Команды администратора", value=f"{len(admin_sync)}" if admin_sync else "SKIPPED")
+    emb.add_field(name="Глобальные команды", value=f"{len(global_sync)}" if global_sync else "ПРОПУЩЕНО")
+    emb.add_field(name="Команды администратора", value=f"{len(admin_sync)}" if admin_sync else "ПРОПУЩЕНО")
 
     if cogs_failed:
         emb.add_field(name="Модули", value=f"{",".join([f"*{c}*" for c in cogs_failed])} не удалось загрузить")
