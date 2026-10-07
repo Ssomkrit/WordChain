@@ -508,14 +508,14 @@ https://github.com/WrichikBasu/word_chain_bot_indently/blob/main/PRIVACY_POLICY.
         @app_commands.command(description='Показывает 10 игроков с наибольшими очками/кармой')
         @app_commands.describe(metric='Выберите очки или карму для сортировки рейтинга')
         @app_commands.choices(metric=[
-            app_commands.Choice(name='score', value='score'),
-            app_commands.Choice(name='karma', value='karma')
+            app_commands.Choice(name='Очки', value='score'),
+            app_commands.Choice(name='Карма', value='karma')
         ])
         @app_commands.describe(
             scope='Выберите игроков текущего сервера или всех игроков')
         @app_commands.choices(scope=[
-            app_commands.Choice(name='server', value='server'),
-            app_commands.Choice(name='global', value='global')
+            app_commands.Choice(name='Сервер', value='server'),
+            app_commands.Choice(name='Глобальный', value='global')
         ])
         async def user(self, interaction: Interaction, metric: Optional[app_commands.Choice[str]],
                        scope: Optional[app_commands.Choice[str]]):
@@ -540,7 +540,7 @@ https://github.com/WrichikBasu/word_chain_bot_indently/blob/main/PRIVACY_POLICY.
                     emb.set_author(name=guild.name,
                                    icon_url=guild.icon.url if guild.icon else None)
                 case 'global':
-                    emb.set_author(name='Global')
+                    emb.set_author(name='Глобальный рейтинг')
 
             async with self.cog.bot.db_connection(locked=False) as connection:
                 limit = 10
@@ -636,7 +636,7 @@ https://github.com/WrichikBasu/word_chain_bot_indently/blob/main/PRIVACY_POLICY.
                 result: CursorResult = await connection.execute(stmt)
                 data: Sequence[Row[tuple[int, int]]] = result.fetchall()
 
-                guild_names = defaultdict(lambda: 'unknown', {g.id: g.name for g in self.cog.bot.guilds})
+                guild_names = defaultdict(lambda: 'неизвестно', {g.id: g.name for g in self.cog.bot.guilds})
                 last_high_score = None
                 last_rank = 0
                 for rank, (server_id, high_score) in enumerate(data, 1):
@@ -661,14 +661,14 @@ https://github.com/WrichikBasu/word_chain_bot_indently/blob/main/PRIVACY_POLICY.
         @app_commands.command(description='Показывает 10 игроков с наибольшими очками или кармой')
         @app_commands.describe(metric='Выберите очки или карму для сортировки рейтинга')
         @app_commands.choices(metric=[
-            app_commands.Choice(name='score', value='score'),
-            app_commands.Choice(name='karma', value='karma')
+            app_commands.Choice(name='Очки', value='score'),
+            app_commands.Choice(name='Карма', value='karma')
         ])
         @app_commands.describe(
             scope='Выберите игроков текущего сервера или всех игроков')
         @app_commands.choices(scope=[
-            app_commands.Choice(name='server', value='server'),
-            app_commands.Choice(name='global', value='global')
+            app_commands.Choice(name='Сервер', value='server'),
+            app_commands.Choice(name='Глобальный', value='global')
         ])
         async def user(self, interaction: Interaction, metric: Optional[app_commands.Choice[str]],
                        scope: Optional[app_commands.Choice[str]]):
