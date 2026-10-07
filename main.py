@@ -168,14 +168,14 @@ def store_command_signature(global_commands: list[dict[str, Any]], admin_command
 @app_commands.guilds(SETTINGS.admin_guild_id)
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
-@app_commands.describe(cog_name='The cog to reload')
+@app_commands.describe(cog_name='Модуль для перезагрузки')
 @app_commands.choices(cog_name=[
-    app_commands.Choice(name='Admin Commands', value=COG_NAME_ADMIN_CMDS),
-    app_commands.Choice(name='Manager Commands', value=COG_NAME_MANAGER_CMDS),
-    app_commands.Choice(name='User Commands', value=COG_NAME_USER_CMDS),
-    app_commands.Choice(name='Game', value=COG_NAME_GAME),
-    app_commands.Choice(name='Common', value=COG_NAME_COMMON),
-    app_commands.Choice(name='All cogs', value='all')
+    app_commands.Choice(name='Команды администратора', value=COG_NAME_ADMIN_CMDS),
+    app_commands.Choice(name='Команды менеджера', value=COG_NAME_MANAGER_CMDS),
+    app_commands.Choice(name='Команды пользователя', value=COG_NAME_USER_CMDS),
+    app_commands.Choice(name='Игра', value=COG_NAME_GAME),
+    app_commands.Choice(name='Общие', value=COG_NAME_COMMON),
+    app_commands.Choice(name='Все модули', value='all')
 ])
 async def reload(interaction: Interaction, cog_name: str, force_sync: bool = False):
     """Reloads a particular cog/all cogs."""
@@ -241,11 +241,11 @@ async def reload(interaction: Interaction, cog_name: str, force_sync: bool = Fal
         if global_changed or admin_changed:
             store_command_signature(global_payload, admin_payload)
 
-    emb.add_field(name="Global commands", value=f"{len(global_sync)}" if global_sync else "SKIPPED")
-    emb.add_field(name="Admin commands", value=f"{len(admin_sync)}" if admin_sync else "SKIPPED")
+    emb.add_field(name="Глобальные команды", value=f"{len(global_sync)}" if global_sync else "SKIPPED")
+    emb.add_field(name="Команды администратора", value=f"{len(admin_sync)}" if admin_sync else "SKIPPED")
 
     if cogs_failed:
-        emb.add_field(name="Cogs", value=f"{",".join([f"*{c}*" for c in cogs_failed])} failed to load")
+        emb.add_field(name="Модули", value=f"{",".join([f"*{c}*" for c in cogs_failed])} не удалось загрузить")
 
     await interaction.followup.send(embed=emb)
 
