@@ -417,7 +417,7 @@ https://discord.gg/yhbzVGBNw3''', colour=Colour.pink())
 `/stats user` — Показывает статистику игрока.
 `/stats server` — Показывает статистику сервера.
 `/check_word` — Проверяет существование и написание слова.
-`/definition` - Проверить значение слова.
+`/definition` — Показывает значение слова.
 `/leaderboard user` — Показывает рейтинг игроков.
 `/leaderboard server` — Показывает глобальный рейтинг серверов.
 `/show_languages` — Показывает включённые языки.
