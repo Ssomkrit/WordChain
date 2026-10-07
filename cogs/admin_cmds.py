@@ -16,12 +16,12 @@ from sqlalchemy import CursorResult, delete, insert, select
 
 from consts import (COG_NAME_ADMIN_CMDS, COG_NAME_COMMON, LOGGER_NAME_ADMIN_COG, LOGGER_NAME_COMMON_COG,
                     LOGGER_NAME_GAME_COG, LOGGER_NAME_MAIN, LOGGER_NAME_MANAGER_COG, LOGGER_NAME_USER_COG, LOGGERS_LIST,
-                    SETTINGS, GameMode)
-from model import (BannedMemberModel, BlacklistModel, MemberModel, ServerConfig, ServerConfigModel, UsedWordsModel,
+                    SETTINGS, ИграMode)
+from model import (ЗаблокированMemberModel, BlacklistModel, MemberModel, ServerConfig, ServerConfigModel, UsedWordsModel,
                    WhitelistModel)
 
 if TYPE_CHECKING:
-    from cogs.common import CommonCog
+    from cogs.common import ОбщиеCog
     from main import WordChainBot
 
 fileConfig(fname='config.ini')
@@ -40,9 +40,9 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
         self.bot.tree.add_command(AdminCommandsCog.ResetCmdGroup(self))
 
     @property
-    def common(self) -> CommonCog:
+    def common(self) -> ОбщиеCog:
         for _ in range(5):
-            cog: CommonCog | None = self.bot.get_cog(COG_NAME_COMMON) # noqa
+            cog: ОбщиеCog | None = self.bot.get_cog(COG_NAME_COMMON) # noqa
             if cog is not None:
                 return cog # noqa
             time.sleep(.2)
@@ -66,7 +66,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
     # -----------------------------------------------------------------------------------------------------------------
 
-    @app_commands.command(name='admin_health_check', description='Performs a health check on a server')
+    @app_commands.command(name='admin_health_check', description='Проверяет настройки и права бота на сервере')
     @app_commands.default_permissions(administrator=True)
     @app_commands.guilds(SETTINGS.admin_guild_id)
     @app_commands.guild_only()
@@ -131,7 +131,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
     # -----------------------------------------------------------------------------------------------------------------
 
-    @app_commands.command(name='list_servers', description='Lists all servers with ID and name for administration')
+    @app_commands.command(name='list_servers', description='Показывает все серверы с ID и названием')
     @app_commands.default_permissions(administrator=True)
     @app_commands.guilds(SETTINGS.admin_guild_id)
     @app_commands.guild_only()
@@ -162,19 +162,19 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
         @app_commands.describe(level='The logging level to be set',
                                logger_name='The logger for which the level has to be set')
         @app_commands.choices(level=[
-            app_commands.Choice(name='Debug', value=logging.DEBUG),
-            app_commands.Choice(name='Info', value=logging.INFO),
-            app_commands.Choice(name='Warning', value=logging.WARNING),
+            app_commands.Choice(name='Отладка', value=logging.DEBUG),
+            app_commands.Choice(name='Информация', value=logging.INFO),
+            app_commands.Choice(name='Предупреждение', value=logging.WARNING),
             app_commands.Choice(name='Ошибка', value=logging.ERROR),
-            app_commands.Choice(name='Critical', value=logging.CRITICAL)
+            app_commands.Choice(name='Критическая ошибка', value=logging.CRITICAL)
         ])
         @app_commands.choices(logger_name=[
-            app_commands.Choice(name='Main', value=LOGGER_NAME_MAIN),
-            app_commands.Choice(name='Admin Commands', value=LOGGER_NAME_ADMIN_COG),
-            app_commands.Choice(name='Manager Commands', value=LOGGER_NAME_MANAGER_COG),
-            app_commands.Choice(name='User Commands', value=LOGGER_NAME_USER_COG),
-            app_commands.Choice(name='Game', value=LOGGER_NAME_GAME_COG),
-            app_commands.Choice(name='Common', value=LOGGER_NAME_COMMON_COG),
+            app_commands.Choice(name='Основной', value=LOGGER_NAME_MAIN),
+            app_commands.Choice(name='Команды администратора', value=LOGGER_NAME_ADMIN_COG),
+            app_commands.Choice(name='Команды менеджера', value=LOGGER_NAME_MANAGER_COG),
+            app_commands.Choice(name='Команды пользователя', value=LOGGER_NAME_USER_COG),
+            app_commands.Choice(name='Игра', value=LOGGER_NAME_GAME_COG),
+            app_commands.Choice(name='Общие', value=LOGGER_NAME_COMMON_COG),
             app_commands.Choice(name='All', value='all')
         ])
         async def set_log_level(self, interaction: Interaction, logger_name: str, level: int):
@@ -275,12 +275,12 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
         @app_commands.command(name='disable_logger', description='Отключить выбранный журнал')
         @app_commands.describe(logger_name='The logger for which the level has to be set')
         @app_commands.choices(logger_name=[
-            app_commands.Choice(name='Main', value=LOGGER_NAME_MAIN),
-            app_commands.Choice(name='Admin Commands', value=LOGGER_NAME_ADMIN_COG),
-            app_commands.Choice(name='Manager Commands', value=LOGGER_NAME_MANAGER_COG),
-            app_commands.Choice(name='User Commands', value=LOGGER_NAME_USER_COG),
-            app_commands.Choice(name='Game', value=LOGGER_NAME_GAME_COG),
-            app_commands.Choice(name='Common', value=LOGGER_NAME_COMMON_COG)
+            app_commands.Choice(name='Основной', value=LOGGER_NAME_MAIN),
+            app_commands.Choice(name='Команды администратора', value=LOGGER_NAME_ADMIN_COG),
+            app_commands.Choice(name='Команды менеджера', value=LOGGER_NAME_MANAGER_COG),
+            app_commands.Choice(name='Команды пользователя', value=LOGGER_NAME_USER_COG),
+            app_commands.Choice(name='Игра', value=LOGGER_NAME_GAME_COG),
+            app_commands.Choice(name='Общие', value=LOGGER_NAME_COMMON_COG)
         ])
         async def disable_specific_logger(self, interaction: Interaction, logger_name: str):
 
@@ -308,12 +308,12 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
         @app_commands.describe(logger_name='The logger for which the level has to be set',
                                reset_level='Whether the level should be explicitly reset to INFO')
         @app_commands.choices(logger_name=[
-            app_commands.Choice(name='Main', value=LOGGER_NAME_MAIN),
-            app_commands.Choice(name='Admin Commands', value=LOGGER_NAME_ADMIN_COG),
-            app_commands.Choice(name='Manager Commands', value=LOGGER_NAME_MANAGER_COG),
-            app_commands.Choice(name='User Commands', value=LOGGER_NAME_USER_COG),
-            app_commands.Choice(name='Game', value=LOGGER_NAME_GAME_COG),
-            app_commands.Choice(name='Common', value=LOGGER_NAME_COMMON_COG)
+            app_commands.Choice(name='Основной', value=LOGGER_NAME_MAIN),
+            app_commands.Choice(name='Команды администратора', value=LOGGER_NAME_ADMIN_COG),
+            app_commands.Choice(name='Команды менеджера', value=LOGGER_NAME_MANAGER_COG),
+            app_commands.Choice(name='Команды пользователя', value=LOGGER_NAME_USER_COG),
+            app_commands.Choice(name='Игра', value=LOGGER_NAME_GAME_COG),
+            app_commands.Choice(name='Общие', value=LOGGER_NAME_COMMON_COG)
         ])
         async def enable_specific_logger(self, interaction: Interaction, logger_name: str, reset_level: bool = True):
 
@@ -347,19 +347,19 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                                level='The logging level via which the message will be sent',
                                message='The message to be logged')
         @app_commands.choices(logger_name=[
-            app_commands.Choice(name='Main', value=LOGGER_NAME_MAIN),
-            app_commands.Choice(name='Admin Commands', value=LOGGER_NAME_ADMIN_COG),
-            app_commands.Choice(name='Manager Commands', value=LOGGER_NAME_MANAGER_COG),
-            app_commands.Choice(name='User Commands', value=LOGGER_NAME_USER_COG),
-            app_commands.Choice(name='Game', value=LOGGER_NAME_GAME_COG),
-            app_commands.Choice(name='Common', value=LOGGER_NAME_COMMON_COG)
+            app_commands.Choice(name='Основной', value=LOGGER_NAME_MAIN),
+            app_commands.Choice(name='Команды администратора', value=LOGGER_NAME_ADMIN_COG),
+            app_commands.Choice(name='Команды менеджера', value=LOGGER_NAME_MANAGER_COG),
+            app_commands.Choice(name='Команды пользователя', value=LOGGER_NAME_USER_COG),
+            app_commands.Choice(name='Игра', value=LOGGER_NAME_GAME_COG),
+            app_commands.Choice(name='Общие', value=LOGGER_NAME_COMMON_COG)
         ])
         @app_commands.choices(level=[
-            app_commands.Choice(name='Debug', value=logging.DEBUG),
-            app_commands.Choice(name='Info', value=logging.INFO),
-            app_commands.Choice(name='Warning', value=logging.WARNING),
+            app_commands.Choice(name='Отладка', value=logging.DEBUG),
+            app_commands.Choice(name='Информация', value=logging.INFO),
+            app_commands.Choice(name='Предупреждение', value=logging.WARNING),
             app_commands.Choice(name='Ошибка', value=logging.ERROR),
-            app_commands.Choice(name='Critical', value=logging.CRITICAL)
+            app_commands.Choice(name='Критическая ошибка', value=logging.CRITICAL)
         ])
         async def test_logger(self, interaction: Interaction, logger_name: str, message: str,
                               level: int = logging.INFO):
@@ -395,12 +395,12 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                               description='Состояние выбранного/всех журналов')
         @app_commands.describe(logger_name='The logger for which you want to view the status')
         @app_commands.choices(logger_name=[
-            app_commands.Choice(name='Main', value=LOGGER_NAME_MAIN),
-            app_commands.Choice(name='Admin Commands', value=LOGGER_NAME_ADMIN_COG),
-            app_commands.Choice(name='Manager Commands', value=LOGGER_NAME_MANAGER_COG),
-            app_commands.Choice(name='User Commands', value=LOGGER_NAME_USER_COG),
-            app_commands.Choice(name='Game', value=LOGGER_NAME_GAME_COG),
-            app_commands.Choice(name='Common', value=LOGGER_NAME_COMMON_COG),
+            app_commands.Choice(name='Основной', value=LOGGER_NAME_MAIN),
+            app_commands.Choice(name='Команды администратора', value=LOGGER_NAME_ADMIN_COG),
+            app_commands.Choice(name='Команды менеджера', value=LOGGER_NAME_MANAGER_COG),
+            app_commands.Choice(name='Команды пользователя', value=LOGGER_NAME_USER_COG),
+            app_commands.Choice(name='Игра', value=LOGGER_NAME_GAME_COG),
+            app_commands.Choice(name='Общие', value=LOGGER_NAME_COMMON_COG),
             app_commands.Choice(name='All', value='all')
         ])
         async def logger_status(self, interaction: Interaction, logger_name: str = 'all'):
@@ -499,9 +499,9 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                 await connection.commit()
 
                 if total_rows_changed > 0:
-                    await interaction.followup.send(f'Removed data for server {guild_id_as_number}')
+                    await interaction.followup.send(f'Данные сервера удалены: {guild_id_as_number}')
                 else:
-                    await interaction.followup.send(f'No data removed for server {guild_id_as_number}')
+                    await interaction.followup.send(f'Данные сервера не удалены: {guild_id_as_number}')
 
         # ---------------------------------------------------------------------------------------------------------------
 
@@ -528,7 +528,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                     await interaction.followup.send(
                         f'Removed data for user {user_id_as_number} in {rows_deleted} servers')
                 else:
-                    await interaction.followup.send(f'No data to remove for user {user_id_as_number}')
+                    await interaction.followup.send(f'Нет данных для удаления у игрока: {user_id_as_number}')
 
     # ============================================================================================================
 
@@ -564,7 +564,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                     rows_updated = await config.sync_to_db_with_connection(connection)
 
                     if rows_updated > 0:
-                        v = 'Banned' if ban else 'Unbanned'
+                        v = 'Заблокирован' if ban else 'Разблокирован'
                         await interaction.followup.send(f'{v} server with ID {guild_id_as_number}')
                     else:
                         await interaction.followup.send(f'No changes for server with ID {guild_id_as_number}')
@@ -613,7 +613,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
                 config: ServerConfig = self.cog.common.server_configs[guild.id]
 
-                for game_mode in GameMode:
+                for game_mode in ИграMode:
                     if channel := self.cog.bot.get_channel(config.game_state[game_mode].channel_id):
                         try:
                             await channel.send(embed=emb)
@@ -624,7 +624,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                             count_failed += 1
 
             emb2: Embed = Embed(title='Статус объявления', colour=Colour.green(), description='Команда выполнена.')
-            emb2.add_field(name='Success', value=f'{count_sent} servers', inline=True)
+            emb2.add_field(name='Готово', value=f'{count_sent} servers', inline=True)
             emb2.add_field(name='Failed', value=f'{count_failed} servers', inline=True)
 
             return emb2
@@ -774,12 +774,12 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
             async with self.cog.bot.db_connection() as connection:
                 if ban:
-                    stmt = insert(BannedMemberModel).values(
+                    stmt = insert(ЗаблокированMemberModel).values(
                         member_id=member_id_as_number
                     )
                 else:
-                    stmt = delete(BannedMemberModel).where(
-                        BannedMemberModel.member_id == member_id_as_number
+                    stmt = delete(ЗаблокированMemberModel).where(
+                        ЗаблокированMemberModel.member_id == member_id_as_number
                     )
 
                 result = await connection.execute(stmt)
@@ -788,9 +788,9 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                 rows_updated: int = result.rowcount
                 if rows_updated > 0:
                     await interaction.followup.send(
-                        f'{'Banned' if ban else 'Unbanned'} member with ID {member_id_as_number}')
+                        f'{'Заблокирован' if ban else 'Разблокирован'} member with ID {member_id_as_number}')
                 else:
-                    await interaction.followup.send(f'No member found with ID {member_id_as_number}')
+                    await interaction.followup.send(f'Игрок с ID не найден: {member_id_as_number}')
 
         # -----------------------------------------------------------------------------------------------------------
 
@@ -800,7 +800,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
             await interaction.response.defer()
 
             async with self.cog.bot.db_connection() as connection:
-                stmt = select(BannedMemberModel.member_id)
+                stmt = select(ЗаблокированMemberModel.member_id)
                 result = await connection.execute(stmt)
                 member_ids = [row[0] for row in result]
 
@@ -810,7 +810,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
                     member_entries = [
                         f'{member_id}: {self.cog.bot.get_user(member_id).name if self.cog.bot.get_user(member_id) is not None else '###'}'
                         for member_id in member_ids]
-                    await interaction.followup.send(f'''These members are currently banned:
+                    await interaction.followup.send(f'''Сейчас заблокированы:
 * {'\n* '.join(member_entries)}''')
 
 
