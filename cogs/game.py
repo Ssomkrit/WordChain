@@ -549,7 +549,7 @@ class GameCog(Cog, name=COG_NAME_GAME):
             The content of the message.
         """
         try:
-            await channel.send(content)
+            await channel.send(content, delete_after=2)
         except discord.errors.Forbidden:
             pass
 
