@@ -224,7 +224,7 @@ class CommonCog(Cog, name=COG_NAME_COMMON):
         if perform_rejoin:
             for (index, guild) in enumerate(self.bot.guilds, start=1):
                 config = self.server_configs[guild.id]
-                await self._rejoin(config, guild, '**I\'m now online!**')
+                await self._rejoin(config, guild, '**Я снова в сети!**')
                 if index % 100 == 0 or index == len(self.bot.guilds):
                     logger.info(f'{index}/{len(self.bot.guilds)} guilds ready')
         else:
@@ -247,7 +247,7 @@ class CommonCog(Cog, name=COG_NAME_COMMON):
         logger.info(f'Joined guild {guild.name} ({guild.id})')
 
         if guild.id in self.server_configs:
-            await self._rejoin(self.server_configs[guild.id], guild, '**Welcome back!**')
+            await self._rejoin(self.server_configs[guild.id], guild, '**С возвращением!**')
             logger.info(f'Config already present for {guild.name} ({guild.id})')
             return
 
@@ -268,7 +268,7 @@ class CommonCog(Cog, name=COG_NAME_COMMON):
                     if len(configs) == 1:
                         config = configs[0]
                         self.server_configs[config.server_id] = config
-                        await self._rejoin(config, guild, '**Welcome back!**')
+                        await self._rejoin(config, guild, '**С возвращением!**')
                         logger.info(f'Config loaded from DB for guild {guild.name} ({guild.id})')
                     else:
                         # this should actually never happen
