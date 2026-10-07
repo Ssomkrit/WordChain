@@ -132,12 +132,12 @@ class CommonCog(Cog, name=COG_NAME_COMMON):
                 emb.description += f'\n\n:fire: Побьём рекорд — {config.game_state[game_mode].high_score}! :fire:\n'
 
             if config.game_state[game_mode].current_word:
-                emb.add_field(name='Last valid word', value=f'{config.game_state[game_mode].current_word}', inline=True)
+                emb.add_field(name='Последнее правильное слово', value=f'{config.game_state[game_mode].current_word}', inline=True)
 
                 if config.game_state[game_mode].last_member_id:
                     member: Optional[discord.Member] = channel.guild.get_member(config.game_state[game_mode].last_member_id)
                     if member:
-                        emb.add_field(name='Last input by', value=f'{member.mention}', inline=True)
+                        emb.add_field(name='Последний ход', value=f'{member.mention}', inline=True)
 
             try:
                 await channel.send(embed=emb)
@@ -926,7 +926,7 @@ class CommonCog(Cog, name=COG_NAME_COMMON):
             else:
                 channel_permission_messages = permission_check_strings(channel.permissions_for(bot_member))
                 items.append(
-                    f'Channel permissions ({game_mode.name}):\n' + '\n'.join(channel_permission_messages) + '\n')
+                    f'Права канала ({game_mode.name}):\n' + '\n'.join(channel_permission_messages) + '\n')
         return items
 
 # ====================================================================================================================
