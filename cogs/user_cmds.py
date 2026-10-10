@@ -458,7 +458,7 @@ https://discord.gg/yhbzVGBNw3''', colour=Colour.pink())
             if guild is None:
                 return emb
 
-            if member.guild_permissions.administrator and guild.id == SETTINGS.admin_guild_id:
+            if member.guild_permissions.administrator and guild.id in SETTINGS.all_admin_guild_ids:
                 emb.description += '''\n
 **Команды только для администраторов бота**
 `/announce` — Отправляет объявление на игровые каналы всех серверов.
