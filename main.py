@@ -44,7 +44,9 @@ async def sync_admin_guilds(tree: app_commands.CommandTree, current_guild_ids: l
             await tree.sync(guild=guild)
             logger.info(f'Removed stale admin commands from guild {guild_id}')
         except discord.HTTPException:
+            # Keep this ID in the signature so cleanup is retried on the next startup.
             logger.exception(f'Failed to remove stale admin commands from guild {guild_id}')
+            synced_guild_ids.append(guild_id)
 
     return last_sync, synced_guild_ids
 
