@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     # Comma-separated extra server IDs allowed to use bot-admin commands.
     additional_admin_guild_ids: str = Field(default="")
     token: str = Field(default=None, validate_default=True)
+    command_signature_file: str | Path = Field(default="command_signature.json")
 
     @property
     def all_admin_guild_ids(self) -> list[int]:
@@ -43,7 +44,6 @@ class Settings(BaseSettings):
             if guild_id not in guild_ids:
                 guild_ids.append(guild_id)
         return guild_ids
-    command_signature_file: str | Path = Field(default="command_signature.json")
 
     model_config = SettingsConfigDict(env_file='.env')
 
