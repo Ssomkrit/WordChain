@@ -17,8 +17,32 @@ class GameMode(Enum):
 class Settings(BaseSettings):
     single_player: bool = Field(default=False)
     bots_allowed: bool = Field(default=False)
+    # The original/main bot-admin server. Keep this ID unchanged.
     admin_guild_id: int = Field(default=None, validate_default=True)
+    # Comma-separated extra server IDs allowed to use bot-admin commands.
+    additional_admin_guild_ids: str = Field(default="")
     token: str = Field(default=None, validate_default=True)
+
+    @property
+    def all_admin_guild_ids(self) -> list[int]:
+        guild_ids = [self.admin_guild_id]
+        for raw_guild_id in self.additional_admin_guild_ids.split(","):
+            raw_guild_id = raw_guild_id.strip()
+            if not raw_guild_id:
+                continue
+            try:
+                guild_id = int(raw_guild_id)
+            except ValueError as exc:
+                raise ValueError(
+                    f"Invalid server ID in ADDITIONAL_ADMIN_GUILD_IDS: {raw_guild_id!r}"
+                ) from exc
+            if guild_id <= 0:
+                raise ValueError(
+                    f"Invalid server ID in ADDITIONAL_ADMIN_GUILD_IDS: {raw_guild_id!r}"
+                )
+            if guild_id not in guild_ids:
+                guild_ids.append(guild_id)
+        return guild_ids
     command_signature_file: str | Path = Field(default="command_signature.json")
 
     model_config = SettingsConfigDict(env_file='.env')
