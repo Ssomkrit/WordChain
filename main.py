@@ -22,6 +22,33 @@ fileConfig(fname='config.ini')
 logger = logging.getLogger(LOGGER_NAME_MAIN)
 
 
+async def sync_admin_guilds(tree: app_commands.CommandTree, current_guild_ids: list[int],
+                            previous_guild_ids: list[int]):
+    """Synchronize bot-admin commands to every allowed guild and remove stale registrations."""
+    last_sync = None
+    synced_guild_ids: list[int] = []
+
+    for guild_id in current_guild_ids:
+        try:
+            last_sync = await tree.sync(guild=Object(id=guild_id))
+            synced_guild_ids.append(guild_id)
+            logger.info(f'Synchronized {len(last_sync)} admin commands for guild {guild_id}')
+        except discord.HTTPException:
+            # A configured guild may not have the bot yet; do not prevent the bot from starting.
+            logger.exception(f'Failed to synchronize admin commands for guild {guild_id}')
+
+    for guild_id in sorted(set(previous_guild_ids) - set(current_guild_ids)):
+        guild = Object(id=guild_id)
+        tree.clear_commands(guild=guild)
+        try:
+            await tree.sync(guild=guild)
+            logger.info(f'Removed stale admin commands from guild {guild_id}')
+        except discord.HTTPException:
+            logger.exception(f'Failed to remove stale admin commands from guild {guild_id}')
+
+    return last_sync, synced_guild_ids
+
+
 class WordChainCommandTree(app_commands.CommandTree):
     async def on_error(self, interaction: Interaction, error: app_commands.AppCommandError, /) -> None:
         original = getattr(error, 'original', error)  # unwrap CommandInvokeError
@@ -107,14 +134,16 @@ class WordChainBot(AutoShardedBot):
             await self.load_extension(f'cogs.{cog_name}')
 
         signature = load_command_signature()
-
-        admin_guild = Object(id=SETTINGS.admin_guild_id)
+        current_admin_guild_ids = SETTINGS.all_admin_guild_ids
+        previous_admin_guild_ids = signature.get('admin_guild_ids', [SETTINGS.admin_guild_id])
+        admin_guild = Object(id=current_admin_guild_ids[0])
 
         global_payload = [command.to_dict(self.tree) for command in self.tree.get_commands()]
         admin_payload = [command.to_dict(self.tree) for command in self.tree.get_commands(guild=admin_guild)]
 
         global_changed = signature['global_commands'] != global_payload
         admin_changed = signature['admin_commands'] != admin_payload
+        admin_guilds_changed = set(previous_admin_guild_ids) != set(current_admin_guild_ids)
 
         if global_changed:
             global_sync = await self.tree.sync()
@@ -122,14 +151,17 @@ class WordChainBot(AutoShardedBot):
         else:
             logger.info('No changes in global commands detected')
 
-        if admin_changed:
-            admin_sync = await self.tree.sync(guild=admin_guild)
-            logger.info(f'Synchronized {len(admin_sync)} admin commands')
+        if admin_changed or admin_guilds_changed:
+            admin_sync, synced_admin_guild_ids = await sync_admin_guilds(
+                self.tree, current_admin_guild_ids, previous_admin_guild_ids
+            )
         else:
-            logger.info('No changes in admin commands detected')
+            admin_sync = None
+            synced_admin_guild_ids = previous_admin_guild_ids
+            logger.info('No changes in admin commands or authorized servers detected')
 
-        if global_changed or admin_changed:
-            store_command_signature(global_payload, admin_payload)
+        if global_changed or admin_changed or admin_guilds_changed:
+            store_command_signature(global_payload, admin_payload, synced_admin_guild_ids)
 
         alembic_cfg = AlembicConfig('config.ini')
         alembic_command.upgrade(alembic_cfg, 'head')
@@ -149,23 +181,28 @@ def load_command_signature() -> dict:
         logger.error('Failed to load existing command signature')
         signature = {
             'global_commands': [],
-            'admin_commands': []
+            'admin_commands': [],
+            'admin_guild_ids': [SETTINGS.admin_guild_id]
         }
+    # Compatibility with the signature file created by older versions.
+    signature.setdefault('admin_guild_ids', [SETTINGS.admin_guild_id])
     return signature
 
 
-def store_command_signature(global_commands: list[dict[str, Any]], admin_commands: list[dict[str, Any]]):
+def store_command_signature(global_commands: list[dict[str, Any]], admin_commands: list[dict[str, Any]],
+                            admin_guild_ids: list[int]):
     with open(SETTINGS.command_signature_file, 'w') as f:
         signature = {
             'global_commands': global_commands,
-            'admin_commands': admin_commands
+            'admin_commands': admin_commands,
+            'admin_guild_ids': admin_guild_ids
         }
         json.dump(signature, f)
         logger.info('Dumped latest command signature')
 
 
 @word_chain_bot.tree.command(name='reload', description='Выгрузить и перезагрузить модуль')
-@app_commands.guilds(SETTINGS.admin_guild_id)
+@app_commands.guilds(*SETTINGS.all_admin_guild_ids)
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 @app_commands.describe(cog_name='Модуль для перезагрузки')
@@ -209,9 +246,16 @@ async def reload(interaction: Interaction, cog_name: str, force_sync: bool = Fal
                 logger.exception(f'Failed to load extension {cog_name}', e)
                 cogs_failed.append(cog_name)
 
-    admin_guild = Object(id=SETTINGS.admin_guild_id)
+    signature = load_command_signature()
+    current_admin_guild_ids = SETTINGS.all_admin_guild_ids
+    previous_admin_guild_ids = signature.get('admin_guild_ids', [SETTINGS.admin_guild_id])
+    admin_guild = Object(id=current_admin_guild_ids[0])
     global_payload = [command.to_dict(word_chain_bot.tree) for command in word_chain_bot.tree.get_commands()]
     admin_payload = [command.to_dict(word_chain_bot.tree) for command in word_chain_bot.tree.get_commands(guild=admin_guild)]
+
+    global_changed = signature['global_commands'] != global_payload
+    admin_changed = signature['admin_commands'] != admin_payload
+    admin_guilds_changed = set(previous_admin_guild_ids) != set(current_admin_guild_ids)
 
     emb: Embed = Embed(title=f'Статус синхронизации', description=f'Синхронизация завершена.', colour=Colour.dark_magenta())
 
@@ -220,32 +264,32 @@ async def reload(interaction: Interaction, cog_name: str, force_sync: bool = Fal
 
     if force_sync:
         global_sync = await word_chain_bot.tree.sync()
-        admin_sync = await word_chain_bot.tree.sync(guild=admin_guild)
-
-        store_command_signature(global_payload, admin_payload)
+        admin_sync, synced_admin_guild_ids = await sync_admin_guilds(
+            word_chain_bot.tree, current_admin_guild_ids, previous_admin_guild_ids
+        )
+        store_command_signature(global_payload, admin_payload, synced_admin_guild_ids)
     else:
-        signature = load_command_signature()
-        global_changed = signature['global_commands'] != global_payload
-        admin_changed = signature['admin_commands'] != admin_payload
-
         if global_changed:
             global_sync = await word_chain_bot.tree.sync()
         else:
             global_sync = None
 
-        if admin_changed:
-            admin_sync = await word_chain_bot.tree.sync(guild=admin_guild)
+        if admin_changed or admin_guilds_changed:
+            admin_sync, synced_admin_guild_ids = await sync_admin_guilds(
+                word_chain_bot.tree, current_admin_guild_ids, previous_admin_guild_ids
+            )
         else:
             admin_sync = None
+            synced_admin_guild_ids = previous_admin_guild_ids
 
-        if global_changed or admin_changed:
-            store_command_signature(global_payload, admin_payload)
+        if global_changed or admin_changed or admin_guilds_changed:
+            store_command_signature(global_payload, admin_payload, synced_admin_guild_ids)
 
     emb.add_field(name="Глобальные команды", value=f"{len(global_sync)}" if global_sync else "ПРОПУЩЕНО")
     emb.add_field(name="Команды администратора", value=f"{len(admin_sync)}" if admin_sync else "ПРОПУЩЕНО")
 
     if cogs_failed:
-        emb.add_field(name="Модули", value=f"{",".join([f"*{c}*" for c in cogs_failed])} не удалось загрузить")
+        emb.add_field(name="Модули", value=f'{",".join([f"*{c}*" for c in cogs_failed])} не удалось загрузить')
 
     await interaction.followup.send(embed=emb)
 
