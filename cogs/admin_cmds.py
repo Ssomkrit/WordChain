@@ -58,17 +58,41 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
     def cog_unload(self) -> None:
         logger.info('Removing commands...')
 
-        for command in self.bot.tree.get_commands():  # Loop through all commands in the bot
-            if command in self.__cog_commands__:  # And remove the ones that are in the specified cog
-                self.bot.tree.remove_command(command.name)
+        admin_command_names = (
+            'admin_health_check',
+            'list_servers',
+            'logging',
+            'purge_data',
+            'ban_server',
+            'announce',
+            'reset_config',
+            'ban_member',
+        )
+        for guild_id in SETTINGS.all_admin_guild_ids:
+            guild = Object(id=guild_id)
+            for command_name in admin_command_names:
+                self.bot.tree.remove_command(command_name, guild=guild)
 
         logger.info(f'Cog {self.qualified_name} unloaded.')
 
     # -----------------------------------------------------------------------------------------------------------------
 
+    @Cog.listener()
+    async def on_guild_join(self, guild: discord.Guild) -> None:
+        """Register bot-admin commands if the bot joins an explicitly authorized server."""
+        if guild.id not in SETTINGS.all_admin_guild_ids:
+            return
+        try:
+            synced = await self.bot.tree.sync(guild=Object(id=guild.id))
+            logger.info(f'Synchronized {len(synced)} admin commands after joining guild {guild.id}')
+        except discord.HTTPException:
+            logger.exception(f'Failed to synchronize admin commands after joining guild {guild.id}')
+
+    # -----------------------------------------------------------------------------------------------------------------
+
     @app_commands.command(name='admin_health_check', description='Проверяет настройки и права бота на сервере')
     @app_commands.default_permissions(administrator=True)
-    @app_commands.guilds(SETTINGS.admin_guild_id)
+    @app_commands.guilds(*SETTINGS.all_admin_guild_ids)
     @app_commands.guild_only()
     @app_commands.describe(guild_id='ID сервера для проверки')
     async def health_check(self, interaction: Interaction, guild_id: str):
@@ -133,7 +157,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
     @app_commands.command(name='list_servers', description='Показывает все серверы с ID и названием')
     @app_commands.default_permissions(administrator=True)
-    @app_commands.guilds(SETTINGS.admin_guild_id)
+    @app_commands.guilds(*SETTINGS.all_admin_guild_ids)
     @app_commands.guild_only()
     async def list_servers(self, interaction: Interaction):
 
@@ -152,7 +176,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
         def __init__(self, cog: AdminCommandsCog):
             super().__init__(name='logging', description='Настройки журналирования',
-                             guild_ids=[SETTINGS.admin_guild_id], guild_only=True,
+                             guild_ids=SETTINGS.all_admin_guild_ids, guild_only=True,
                              default_permissions=Permissions(administrator=True))
             self.cog: AdminCommandsCog = cog
 
@@ -441,7 +465,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
         def __init__(self, cog: AdminCommandsCog):
             super().__init__(name='purge_data', description='Очистка базы данных',
-                             guild_ids=[SETTINGS.admin_guild_id], guild_only=True,
+                             guild_ids=SETTINGS.all_admin_guild_ids, guild_only=True,
                              default_permissions=Permissions(administrator=True))
             self.cog: AdminCommandsCog = cog
 
@@ -536,7 +560,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
         def __init__(self, cog: AdminCommandsCog):
             super().__init__(name='ban_server', description='Управление блокировкой серверов',
-                             guild_ids=[SETTINGS.admin_guild_id], guild_only=True,
+                             guild_ids=SETTINGS.all_admin_guild_ids, guild_only=True,
                              default_permissions=Permissions(administrator=True))
             self.cog: AdminCommandsCog = cog
 
@@ -599,7 +623,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
         def __init__(self, cog: AdminCommandsCog):
             super().__init__(name='announce', description='Отправка объявлений',
-                             guild_ids=[SETTINGS.admin_guild_id], guild_only=True,
+                             guild_ids=SETTINGS.all_admin_guild_ids, guild_only=True,
                              default_permissions=Permissions(administrator=True))
             self.cog: AdminCommandsCog = cog
 
@@ -662,7 +686,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
         def __init__(self, cog: AdminCommandsCog):
             super().__init__(name='reset_config', description='Сброс настроек',
-                             guild_ids=[SETTINGS.admin_guild_id], guild_only=True,
+                             guild_ids=SETTINGS.all_admin_guild_ids, guild_only=True,
                              default_permissions=Permissions(administrator=True))
             self.cog: AdminCommandsCog = cog
 
@@ -751,7 +775,7 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
         def __init__(self, cog: AdminCommandsCog):
             super().__init__(name='ban_member', description='Управление блокировкой серверов',
-                             guild_ids=[SETTINGS.admin_guild_id], guild_only=True,
+                             guild_ids=SETTINGS.all_admin_guild_ids, guild_only=True,
                              default_permissions=Permissions(administrator=True))
             self.cog: AdminCommandsCog = cog
 
@@ -818,4 +842,4 @@ class AdminCommandsCog(Cog, name=COG_NAME_ADMIN_CMDS):
 
 
 async def setup(bot: WordChainBot):
-    await bot.add_cog(AdminCommandsCog(bot), guild=Object(id=SETTINGS.admin_guild_id))
+    await bot.add_cog(AdminCommandsCog(bot), guilds=[Object(id=guild_id) for guild_id in SETTINGS.all_admin_guild_ids])
