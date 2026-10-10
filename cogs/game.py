@@ -492,7 +492,7 @@ class GameCog(Cog, name=COG_NAME_GAME):
 
         config.fail_chain(game_mode, member_id)
 
-        await self.send_message_to_channel(message.channel, response)
+        await self.send_message_to_channel(message.channel, response, delete_after=None)
         await self.add_reaction(message, '❌')
 
         stmt = update(MemberModel).where(
@@ -537,7 +537,7 @@ class GameCog(Cog, name=COG_NAME_GAME):
     # ---------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def send_message_to_channel(channel: discord.abc.Messageable, content: str) -> None:
+    async def send_message_to_channel(channel: discord.abc.Messageable, content: str, *, delete_after: float | None = 3) -> None:
         """
         Sends a message to the given channel, with error handling for missing permissions.
 
@@ -549,7 +549,7 @@ class GameCog(Cog, name=COG_NAME_GAME):
             The content of the message.
         """
         try:
-            await channel.send(content, delete_after=3)
+            await channel.send(content, delete_after=delete_after)
         except discord.errors.Forbidden:
             pass
 
