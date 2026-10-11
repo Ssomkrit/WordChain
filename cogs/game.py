@@ -211,7 +211,15 @@ class GameCog(Cog, name=COG_NAME_GAME):
         config: ServerConfig = self.common.server_configs[server_id]
         word: str = message.content.lower()
         server_languages: list[Language] = config.languages
-        valid_languages: list[Language] = [language for language in server_languages if self.common.word_matches_pattern(word, language.value)]
+        # Format-only matches are used to validate characters for whitelisted words.
+        word_format_languages: list[Language] = [
+            language for language in server_languages
+            if re.search(language.value.allowed_word_regex, word)
+        ]
+        valid_languages: list[Language] = [
+            language for language in server_languages
+            if self.common.word_matches_pattern(word, language.value)
+        ]
 
         if len(word) == 0 or word == '.':
             return
@@ -237,12 +245,15 @@ class GameCog(Cog, name=COG_NAME_GAME):
 Цепочка **не** сломана. Введите другое слово.''')
             return
 
-        # --------------------
-        # Check language match
-        # --------------------
-        if not valid_languages:
+        # --------------------------------
+        # Check whitelist and word format
+        # --------------------------------
+        async with self.bot.db_connection() as connection:
+            word_whitelisted = await self.common.is_word_whitelisted(word, server_id, connection)
+
+        if not valid_languages and not (word_whitelisted and word_format_languages):
             if not any(c.isspace() for c in word):
-                # in this case, we have a single word, that did not match any of the configured language regex patterns
+                # Reject words with unsupported characters or words not accepted by the normal validator.
                 await self.add_reaction(message, '⚠️')
                 await self.send_message_to_channel(message.channel, f'''Неверное слово.
 Цепочка **не** сломана. Введите другое слово.''')
@@ -285,7 +296,7 @@ class GameCog(Cog, name=COG_NAME_GAME):
             # -------------------------------
             # Check if word is whitelisted
             # -------------------------------
-            word_whitelisted: bool = await self.common.is_word_whitelisted(word, message.guild.id, connection)
+            # Already checked before the morphology validator so whitelist entries can bypass it.
 
             # -----------------------------------
             # Check if word is blacklisted
@@ -305,8 +316,12 @@ class GameCog(Cog, name=COG_NAME_GAME):
 
             # First check the whitelist or the word cache
             matched_language = await self.common.is_word_in_cache(word, connection, server_languages)
+            if word_whitelisted and not matched_language:
+                # A whitelisted word may not have a dictionary/cache entry; use the language
+                # whose character pattern matched so scoring and karma use the correct language.
+                matched_language = word_format_languages[0]
             if word_whitelisted or matched_language:
-                # Word found in cache. No need to query API
+                # Whitelisted words skip dictionary lookup, but still follow the game rules.
                 futures = None
             else:
                 # Word neither whitelisted, nor found in cache.
