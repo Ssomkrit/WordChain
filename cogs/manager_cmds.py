@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import time
 from logging.config import fileConfig
 from typing import TYPE_CHECKING
@@ -52,6 +53,12 @@ class ManagerCommandsCog(Cog, name=COG_NAME_MANAGER_CMDS):
     def is_generally_illegal_word(common: CommonCog, word: str, server_id: int):
         valid_languages = common.server_configs[server_id].languages
         return not any(common.word_matches_pattern(word.lower(), language.value) for language in valid_languages)
+
+    @staticmethod
+    def has_legal_word_format(common: CommonCog, word: str, server_id: int) -> bool:
+        """Checks the allowed character pattern without dictionary or morphology validation."""
+        valid_languages = common.server_configs[server_id].languages
+        return any(re.search(language.value.allowed_word_regex, word.lower()) for language in valid_languages)
 
     # ----------------------------------------------------------------------------------------------------------------
 
@@ -507,20 +514,22 @@ to the other game mode!''')
 
             emb: Embed = Embed(colour=Colour.blurple())
 
-            if self.cog.is_generally_illegal_word(self.cog.common, word, guild.id):
-                emb.description = f'⚠️ The word *{word.lower()}* is not a legal word.'
+            normalized_word = word.strip().lower()
+            if len(normalized_word) < 2 or not self.cog.has_legal_word_format(
+                    self.cog.common, normalized_word, guild.id):
+                emb.description = f'⚠️ The word *{normalized_word}* contains unsupported characters or is too short.'
                 await interaction.followup.send(embed=emb)
                 return
 
             async with self.cog.bot.db_connection() as connection:
                 stmt = insert(WhitelistModel).values(
                     server_id=guild.id,
-                    word=word.lower()
+                    word=normalized_word
                 ).prefix_with('OR IGNORE')
                 await connection.execute(stmt)
                 await connection.commit()
 
-            emb.description = f'✅ The word *{word.lower()}* was successfully added to the whitelist.'
+            emb.description = f'✅ The word *{normalized_word}* was successfully added to the whitelist.'
             await interaction.followup.send(embed=emb)
 
         # ------------------------------------------------------------------------------------------------------------
@@ -551,8 +560,8 @@ to the other game mode!''')
 
             emb: Embed = Embed(colour=Colour.blurple())
 
-            if self.cog.is_generally_illegal_word(self.cog.common, word, guild.id):
-                emb.description = f'⚠️ The word *{word.lower()}* is not a legal word.'
+            if not self.cog.has_legal_word_format(self.cog.common, word, guild.id):
+                emb.description = f'⚠️ The word *{word.lower()}* contains unsupported characters.'
                 await interaction.followup.send(embed=emb)
                 return
 
