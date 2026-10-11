@@ -560,23 +560,24 @@ to the other game mode!''')
 
             emb: Embed = Embed(colour=Colour.blurple())
 
-            if not self.cog.has_legal_word_format(self.cog.common, word, guild.id):
-                emb.description = f'⚠️ The word *{word.lower()}* contains unsupported characters.'
+            normalized_word = word.strip().lower()
+            if not self.cog.has_legal_word_format(self.cog.common, normalized_word, guild.id):
+                emb.description = f'⚠️ The word *{normalized_word}* contains unsupported characters.'
                 await interaction.followup.send(embed=emb)
                 return
 
             async with self.cog.bot.db_connection() as connection:
                 stmt = delete(WhitelistModel).where(
                     WhitelistModel.server_id == guild.id,
-                    WhitelistModel.word == word.lower()
+                    WhitelistModel.word == normalized_word
                 )
                 result = await connection.execute(stmt)
                 await connection.commit()
 
             if result.rowcount == 0:
-                emb.description = f'❌ The word *{word.lower()}* is not part of the whitelist.'
+                emb.description = f'❌ The word *{normalized_word}* is not part of the whitelist.'
             else:
-                emb.description = f'✅ The word *{word.lower()}* has been removed from the whitelist.'
+                emb.description = f'✅ The word *{normalized_word}* has been removed from the whitelist.'
             await interaction.followup.send(embed=emb)
 
         # ------------------------------------------------------------------------------------------------------------
